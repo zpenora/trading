@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>SAHM | سهم — Global Stock Trading Platform</title>
+<meta name="description" content="Trade stocks across Tadawul and Wall Street in real time. Zero commission, verified accounts, bank-grade security.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305070d'/%3E%3Cline x1='10' y1='7' x2='10' y2='12' stroke='%2334d399' stroke-width='2.4'/%3E%3Crect x='7.4' y='12' width='5.2' height='8' rx='1.2' fill='%2334d399'/%3E%3Cline x1='10' y1='20' x2='10' y2='24' stroke='%2334d399' stroke-width='2.4'/%3E%3Cline x1='22' y1='9' x2='22' y2='13' stroke='%2338bdf8' stroke-width='2.4'/%3E%3Crect x='19.4' y='13' width='5.2' height='9' rx='1.2' fill='%2338bdf8'/%3E%3Cline x1='22' y1='22' x2='22' y2='26' stroke='%2338bdf8' stroke-width='2.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { up:'#16c784', down:'#ea3943', acc:'#34d399', ink:'#05070d', panel:'#0b101d' },
+    fontFamily: { sans:['Inter','IBM Plex Sans Arabic','system-ui','sans-serif'], mono:['JetBrains Mono','monospace'] }
+  } }
+}
+</script>
+<style>
+:root{
+  --up:#16c784; --down:#ea3943; --acc:#34d399; --acc2:#0ea5e9;
+  --cardB:rgba(148,163,184,.13);
+}
+html{scroll-behavior:smooth}
+body{background:#05070d;font-family:'Inter','IBM Plex Sans Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+::selection{background:rgba(52,211,153,.28);color:#ecfdf5}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- ambient ---------- */
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0}
+.orb-a{width:560px;height:560px;top:-180px;left:-180px;background:radial-gradient(circle,rgba(16,185,129,.16),transparent 70%)}
+.orb-b{width:640px;height:640px;bottom:-220px;right:-200px;background:radial-gradient(circle,rgba(14,165,233,.13),transparent 70%)}
+.orb-c{width:380px;height:380px;top:35%;left:55%;background:radial-gradient(circle,rgba(251,191,36,.06),transparent 70%)}
+.hero-grid{background-image:linear-gradient(rgba(148,163,184,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.055) 1px,transparent 1px);background-size:44px 44px}
+
+/* ---------- cards & fields ---------- */
+.card{background:linear-gradient(180deg,rgba(21,28,47,.6),rgba(13,18,32,.62));border:1px solid var(--cardB);border-radius:1.15rem;backdrop-filter:blur(14px)}
+.card-hover{transition:transform .25s,border-color .25s,box-shadow .25s}
+.card-hover:hover{border-color:rgba(52,211,153,.32);transform:translateY(-2px);box-shadow:0 18px 44px -18px rgba(0,0,0,.7)}
+.label{font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:#8792a8;font-weight:600;display:block;margin-bottom:.4rem}
+.field{width:100%;background:#0a0f1e;border:1px solid rgba(148,163,184,.17);border-radius:.75rem;padding:.66rem .85rem;font-size:.875rem;color:#e6ebf5;outline:none;transition:border-color .2s,box-shadow .2s}
+.field::placeholder{color:#475569}
+.field:focus{border-color:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.16)}
+.field:disabled,.field[readonly]{opacity:.65;cursor:not-allowed}
+.field-error{border-color:rgba(234,57,67,.65)!important;box-shadow:0 0 0 3px rgba(234,57,67,.13)!important}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:.75rem;font-weight:600;font-size:.875rem;cursor:pointer;border:1px solid transparent;transition:all .2s;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,#34d399 0%,#10b981 100%);color:#032117;box-shadow:0 10px 30px -10px rgba(16,185,129,.55);padding:.72rem 1.4rem}
+.btn-primary:hover{filter:brightness(1.09);transform:translateY(-1px);box-shadow:0 13px 36px -9px rgba(16,185,129,.6)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none;box-shadow:none}
+.btn-danger-solid{background:linear-gradient(135deg,#f43f5e,#e11d48);color:#2a020a;box-shadow:0 10px 30px -10px rgba(244,63,94,.5);padding:.72rem 1.4rem}
+.btn-danger-solid:hover{filter:brightness(1.08)}
+.btn-ghost{background:rgba(255,255,255,.035);border-color:var(--cardB);color:#cbd5e1;padding:.72rem 1.2rem}
+.btn-ghost:hover{background:rgba(255,255,255,.07);color:#fff}
+.btn-danger{background:rgba(234,57,67,.1);border-color:rgba(234,57,67,.3);color:#fb8a93;padding:.72rem 1.2rem}
+.btn-danger:hover{background:rgba(234,57,67,.18)}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:2.35rem;height:2.35rem;border-radius:.7rem;border:1px solid transparent;color:#94a3b8;cursor:pointer;transition:all .2s}
+.icon-btn:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
+.chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--cardB);border-radius:99px;padding:.28rem .72rem;font-size:.7rem;color:#a8b3c7;font-weight:500}
+
+/* ---------- auth tabs ---------- */
+.tab-btn{flex:1;padding:.7rem 0;font-size:.85rem;font-weight:600;color:#8792a8;border-bottom:2px solid transparent;cursor:pointer;transition:all .25s;background:none;border-top:0;border-left:0;border-right:0}
+.tab-btn.active{color:#34d399;border-bottom-color:#34d399}
+
+/* ---------- nav ---------- */
+.nav-item{display:flex;align-items:center;gap:.72rem;width:100%;text-align:start;padding:.62rem .75rem;border-radius:.75rem;color:#8792a8;font-size:.86rem;font-weight:500;border:1px solid transparent;cursor:pointer;transition:all .2s;background:none}
+.nav-item:hover{color:#e6ebf5;background:rgba(255,255,255,.035)}
+.nav-item.active{color:#34d399;background:linear-gradient(90deg,rgba(52,211,153,.13),rgba(52,211,153,.03));border-color:rgba(52,211,153,.28)}
+.mnav-item{display:flex;flex-direction:column;align-items:center;gap:.15rem;flex:1;padding:.45rem 0 .35rem;color:#7c8699;font-size:.6rem;font-weight:600;cursor:pointer;transition:color .2s;background:none;border:0}
+.mnav-item.active{color:#34d399}
+
+/* ---------- tape ---------- */
+.tape{overflow:hidden;height:36px;display:flex;align-items:center;background:#060911;border-bottom:1px solid rgba(148,163,184,.08)}
+.tape-inner{display:flex;width:max-content;white-space:nowrap;animation:tapeScroll 55s linear infinite}
+.tape:hover .tape-inner{animation-play-state:paused}
+@keyframes tapeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tape-item{display:inline-flex;align-items:center;gap:.45rem;padding:0 1.4rem;font-size:.72rem;color:#a8b3c7;border-right:1px solid rgba(148,163,184,.1)}
+
+/* ---------- misc ---------- */
+.grad-text{background:linear-gradient(115deg,#34d399 0%,#38bdf8 55%,#34d399 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradShift 6s ease infinite}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.live-dot{width:.48rem;height:.48rem;border-radius:99px;background:#34d399;display:inline-block;animation:pulseDot 2s infinite}
+.live-dot.closed{background:#f59e0b;animation:none}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.55)}50%{box-shadow:0 0 0 5px rgba(52,211,153,0)}}
+@keyframes floatChip{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px)}}
+.float-chip{animation:floatChip 5.5s ease-in-out infinite}
+.float-chip.d2{animation-delay:-2s;animation-duration:6.5s}
+.float-chip.d3{animation-delay:-3.4s;animation-duration:7.2s}
+
+.chg-up{color:var(--up)} .chg-down{color:var(--down)}
+.flash-up{color:var(--up)!important;transition:color .1s} .flash-down{color:var(--down)!important;transition:color .1s}
+
+/* ---------- tables ---------- */
+.trow{border-bottom:1px solid rgba(148,163,184,.07);transition:background .15s}
+.trow:last-child{border-bottom:0}
+.trow:hover{background:rgba(52,211,153,.045)}
+.trow.selected{background:rgba(52,211,153,.07)}
+.th-cell{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#6d7789;font-weight:700;padding:.55rem .75rem;text-align:start}
+
+/* ---------- segmented / pills ---------- */
+.seg{display:flex;background:#0a0f1e;border:1px solid var(--cardB);border-radius:.8rem;padding:.3rem;gap:.3rem}
+.seg-btn{flex:1;padding:.55rem;border-radius:.6rem;font-size:.82rem;font-weight:700;letter-spacing:.05em;color:#8792a8;cursor:pointer;border:0;background:transparent;transition:all .2s}
+.seg-btn.buy-active{background:rgba(22,199,132,.16);color:#34d399;box-shadow:inset 0 0 0 1px rgba(52,211,153,.4)}
+.seg-btn.sell-active{background:rgba(234,57,67,.16);color:#fb8a93;box-shadow:inset 0 0 0 1px rgba(234,57,67,.4)}
+.range-pill{padding:.32rem .7rem;border-radius:.55rem;font-size:.7rem;font-weight:600;color:#8792a8;border:1px solid transparent;cursor:pointer;transition:all .2s;background:transparent}
+.range-pill:hover{color:#e2e8f0}
+.range-pill.active{color:#34d399;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.35)}
+.qty-pill{flex:1;padding:.35rem 0;font-size:.72rem;font-weight:600;color:#a8b3c7;background:rgba(255,255,255,.03);border:1px solid var(--cardB);border-radius:.55rem;cursor:pointer;transition:all .15s}
+.qty-pill:hover{border-color:rgba(52,211,153,.4);color:#34d399}
+
+/* ---------- switch ---------- */
+.switch{position:relative;width:2.6rem;height:1.45rem;border-radius:99px;background:#1c2438;border:1px solid var(--cardB);cursor:pointer;transition:background .25s;appearance:none;outline:none;flex-shrink:0}
+.switch::after{content:'';position:absolute;top:.16rem;inset-inline-start:.18rem;width:1.05rem;height:1.05rem;border-radius:99px;background:#8b96ab;transition:all .25s}
+.switch:checked{background:rgba(16,185,129,.35);border-color:rgba(52,211,153,.5)}
+.switch:checked::after{transform:translateX(1.15rem);background:#34d399;box-shadow:0 0 10px rgba(52,211,153,.6)}
+[dir="rtl"] .switch:checked::after{transform:translateX(-1.15rem)}
+
+/* ---------- OTP ---------- */
+.otp-input{width:2.85rem;height:3.3rem;text-align:center;font-size:1.3rem;font-weight:700;background:#0a0f1e;border:1.5px solid rgba(148,163,184,.22);border-radius:.8rem;color:#e6ebf5;outline:none;transition:all .2s;font-family:'JetBrains Mono',monospace}
+@media(min-width:400px){.otp-input{width:3.1rem;height:3.6rem}}
+.otp-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(52,211,153,.18);transform:translateY(-2px)}
+.otp-input.filled{border-color:rgba(52,211,153,.5)}
+.otp-input.error{border-color:var(--down);animation:shake .4s}
+.otp-input.success{border-color:var(--up);background:rgba(22,199,132,.12);color:#6ff0b6}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* ---------- modals ---------- */
+.modal-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(3,6,12,.72);backdrop-filter:blur(7px);opacity:0;pointer-events:none;transition:opacity .28s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-panel{transform:translateY(18px) scale(.96);opacity:0;transition:all .34s cubic-bezier(.2,.9,.3,1.12)}
+.modal-overlay.open .modal-panel{transform:none;opacity:1}
+.check-circle{stroke-dasharray:170;stroke-dashoffset:170;animation:dashDraw .65s .1s ease forwards}
+.check-mark{stroke-dasharray:60;stroke-dashoffset:60;animation:dashDraw .45s .65s ease forwards}
+@keyframes dashDraw{to{stroke-dashoffset:0}}
+
+/* ---------- toast ---------- */
+.toast{display:flex;gap:.7rem;align-items:flex-start;width:350px;max-width:calc(100vw - 2rem);background:#0f1626;border:1px solid var(--cardB);border-radius:.9rem;padding:.75rem .85rem;box-shadow:0 20px 50px -12px rgba(0,0,0,.65);animation:toastIn .38s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes toastIn{from{transform:translateY(18px);opacity:0}}
+.toast.leaving{transition:all .3s;opacity:0;transform:translateX(50px)}
+
+/* ---------- settings tabs ---------- */
+.settings-tab{display:flex;align-items:center;gap:.55rem;padding:.6rem 1rem;border-radius:.7rem;font-size:.84rem;font-weight:600;color:#8792a8;cursor:pointer;border:1px solid transparent;background:transparent;transition:all .2s;white-space:nowrap}
+.settings-tab.active{color:#34d399;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.35)}
+.lang-card{border:1.5px solid var(--cardB);border-radius:.9rem;padding:.9rem;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.02);text-align:start}
+.lang-card:hover{border-color:rgba(148,163,184,.3)}
+.lang-card.active{border-color:#34d399;background:rgba(52,211,153,.07);box-shadow:0 0 0 3px rgba(52,211,153,.12)}
+
+.spinner{width:1.05rem;height:1.05rem;border:2px solid rgba(4,21,12,.35);border-top-color:#04150c;border-radius:99px;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#appScreen{height:100vh;height:100dvh}
+#dashChart{height:235px}#marketChart{height:330px}
+@media(min-width:640px){#marketChart{height:360px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="bg-ink text-slate-200 overflow-x-hidden">
+
+<!-- Ambient background -->
+<div class="orb orb-a"></div><div class="orb orb-b"></div><div class="orb orb-c"></div>
+
+<!-- ═══════════════════════════ AUTH SCREEN ═══════════════════════════ -->
+<div id="authScreen" class="relative z-10 min-h-screen grid lg:grid-cols-2">
+
+  <!-- LEFT · Brand / live chart hero -->
+  <div class="relative hidden lg:flex flex-col overflow-hidden border-e border-white/5 hero-grid">
+    <div id="authChart" class="absolute inset-0 opacity-75" style="pointer-events:none"></div>
+    <div class="absolute inset-0" style="background:linear-gradient(95deg,rgba(5,7,13,.94) 0%,rgba(5,7,13,.72) 38%,rgba(5,7,13,.18) 78%),linear-gradient(0deg,rgba(5,7,13,.92) 0%,transparent 42%)"></div>
+
+    <!-- Floating live chips -->
+    <div class="absolute z-10 float-chip d1 hidden xl:flex items-center gap-2 bg-[#0f1626]/85 backdrop-blur-md border border-emerald-400/25 rounded-xl px-3 py-2 shadow-xl shadow-emerald-500/10" style="top:27%;right:9%">
+      <span class="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-extrabold" style="background:rgba(118,185,0,.18);color:#8be019">NV</span>
+      <div><div class="text-[10px] text-slate-400 font-semibold">NVIDIA</div><div class="text-xs mono font-bold text-up">+2.34%</div></div>
+    </div>
+    <div class="absolute z-10 float-chip d2 hidden xl:flex items-center gap-2 bg-[#0f1626]/85 backdrop-blur-md border border-sky-400/25 rounded-xl px-3 py-2 shadow-xl shadow-sky-500/10" style="top:46%;right:16%">
+      <span class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,.14);color:#38bdf8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 10"></polyline></svg></span>
+      <div><div class="text-[10px] text-slate-400 font-semibold">Order filled</div><div class="text-xs mono font-bold text-slate-100">Bought 25 × AAPL</div></div>
+    </div>
+    <div class="absolute z-10 float-chip d3 hidden xl:flex items-center gap-2 bg-[#0f1626]/85 backdrop-blur-md border border-amber-400/25 rounded-xl px-3 py-2 shadow-xl shadow-amber-500/10" style="top:64%;right:7%">
+      <span class="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-extrabold" style="background:rgba(245,158,11,.16);color:#fbbf24">T</span>
+      <div><div class="text-[10px] text-slate-400 font-semibold">TASI Index</div><div class="text-xs mono font-bold text-up">+0.81%</div></div>
+    </div>
+
+    <div class="relative z-10 flex flex-col h-full p-9 xl:p-12">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background:linear-gradient(140deg,#34d399,#0ea5e9);box-shadow:0 10px 30px -8px rgba(52,211,153,.5)">
+          <svg width="24" height="24" viewBox="0 0 32 32" fill="none"><line x1="10" y1="6" x2="10" y2="11" stroke="#04150c" stroke-width="2.4"/><rect x="7.2" y="11" width="5.6" height="9" rx="1.3" fill="#04150c"/><line x1="10" y1="20" x2="10" y2="25" stroke="#04150c" stroke-width="2.4"/><line x1="22" y1="8" x2="22" y2="12" stroke="#04150c" stroke-width="2.4"/><rect x="19.2" y="12" width="5.6" height="10" rx="1.3" fill="#04150c"/><line x1="22" y1="22" x2="22" y2="27" stroke="#04150c" stroke-width="2.4"/></svg>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2"><span class="text-[1.65rem] font-extrabold text-white tracking-tight leading-none">SAHM</span><span class="text-lg font-bold text-acc leading-none">سهم</span></div>
+          <div class="text-[9px] tracking-[.28em] text-slate-500 font-bold mt-0.5">GLOBAL MARKETS</div>
+        </div>
+      </div>
+
+      <div class="mt-auto max-w-lg pb-2">
+        <div class="inline-flex items-center gap-2 chip mb-5 border-emerald-400/25 text-emerald-300"><span class="live-dot"></span><span data-i18n="heroBadge">LIVE · TADAWUL + NYSE + NASDAQ</span></div>
+        <h1 class="text-[2.6rem] xl:text-[3.1rem] font-extrabold leading-[1.06] text-white tracking-tight" data-i18n-html="heroTitle">Invest in what<br><span class="grad-text">moves the world.</span></h1>
+        <p class="text-slate-400 mt-4 text-[.95rem] leading-relaxed" data-i18n="heroSub">Real-time prices across 16,000+ assets, zero-commission execution, and bank-grade security — all in one terminal.</p>
+        <div class="flex items-center gap-6 sm:gap-8 mt-7">
+          <div><div class="text-xl xl:text-2xl font-extrabold text-white mono" data-i18n="statVolumeV">$2.4B+</div><div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-0.5" data-i18n="statVolumeL">Traded volume</div></div>
+          <div class="w-px h-9 bg-white/10"></div>
+          <div><div class="text-xl xl:text-2xl font-extrabold text-white mono" data-i18n="statInvestorsV">480K+</div><div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-0.5" data-i18n="statInvestorsL">Active investors</div></div>
+          <div class="w-px h-9 bg-white/10"></div>
+          <div><div class="text-xl xl:text-2xl font-extrabold text-white mono" data-i18n="statMarketsV">90+</div><div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-0.5" data-i18n="statMarketsL">Global markets</div></div>
+        </div>
+      </div>
+
+      <div class="relative z-10 flex items-center gap-2.5 text-[10px] text-slate-500 mt-6 pb-1">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400 shrink-0"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span data-i18n="encNote">256-bit encryption · Regulated · SIPC &amp; Tadawul Capital member</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT · Auth card -->
+  <div class="flex flex-col items-center justify-center p-5 sm:p-8 relative overflow-y-auto">
+    <div class="w-full max-w-[440px] relative z-10">
+      <div class="flex lg:hidden items-center justify-center gap-2.5 mb-6 mt-2">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(140deg,#34d399,#0ea5e9)">
+          <svg width="21" height="21" viewBox="0 0 32 32" fill="none"><line x1="10" y1="6" x2="10" y2="25" stroke="#04150c" stroke-width="2.6"/><rect x="7" y="11" width="6" height="9" rx="1.3" fill="#04150c"/><rect x="19" y="12" width="6" height="10" rx="1.3" fill="#04150c"/><line x1="22" y1="8" x2="22" y2="27" stroke="#04150c" stroke-width="2.6"/></svg>
+        </div>
+        <span class="text-2xl font-extrabold text-white">SAHM <span class="text-acc text-lg">سهم</span></span>
+      </div>
+
+      <div class="card p-6 sm:p-8 shadow-2xl shadow-black/50">
+        <div class="flex border-b border-white/10 mb-6">
+          <button id="tabSignIn" class="tab-btn active" data-i18n="tabSignIn">Sign In</button>
+          <button id="tabSignUp" class="tab-btn" data-i18n="tabSignUp">Sign Up</button>
+        </div>
+
+        <div id="authError" class="hidden mb-4 flex items-start gap-2.5 text-[13px] text-rose-300 bg-rose-500/10 border border-rose-500/25 rounded-xl px-3.5 py-2.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span id="authErrorText"></span>
+        </div>
+
+        <!-- SIGN IN FORM -->
+        <form id="formSignIn" novalidate>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight" data-i18n="welcomeBack">Welcome back</h2>
+          <p class="text-sm text-slate-500 mt-1 mb-5" data-i18n="welcomeSub">Sign in to access your portfolio and trade live markets.</p>
+          <label class="label" for="siEmail" data-i18n="email">Email address</label>
+          <input id="siEmail" type="email" class="field mb-4" placeholder="name@example.com" autocomplete="email" required>
+          <label class="label" for="siPassword" data-i18n="password">Password</label>
+          <div class="relative mb-2">
+            <input id="siPassword" type="password" class="field pe-11" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle icon-btn absolute top-1/2 -translate-y-1/2 end-1 !w-9 !h-9" data-target="siPassword" aria-label="Toggle password">
+              <svg class="eye-open" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg class="eye-off hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+          <div class="flex items-center justify-between mb-5">
+            <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none"><input type="checkbox" class="accent-emerald-500 w-3.5 h-3.5" checked> <span data-i18n="rememberMe">Remember me</span></label>
+            <button type="button" id="forgotBtn" class="text-xs font-semibold text-acc hover:text-emerald-300 transition-colors" data-i18n="forgot">Forgot password?</button>
+          </div>
+          <button type="submit" class="btn btn-primary w-full !py-3 text-[.92rem]">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span data-i18n="signInBtn">Sign In Securely</span>
+          </button>
+          <div class="flex items-center gap-3 my-4"><div class="h-px flex-1 bg-white/10"></div><span class="text-[10px] uppercase tracking-widest text-slate-600 font-bold" data-i18n="orContinue">or</span><div class="h-px flex-1 bg-white/10"></div></div>
+          <button type="button" id="demoFillBtn" class="btn btn-ghost w-full !py-2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span data-i18n="demoBtn">Use demo account</span>
+            <span class="mono text-[10px] text-slate-500" data-i18n="demoNote">demo@sahm.io · demo123</span>
+          </button>
+        </form>
+
+        <!-- SIGN UP FORM -->
+        <form id="formSignUp" class="hidden" novalidate>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight" data-i18n="createAccount">Create your account</h2>
+          <p class="text-sm text-slate-500 mt-1 mb-5" data-i18n="createSub">Start with $0 in virtual funds. Verified in under a minute.</p>
+          <label class="label" for="suName" data-i18n="fullName">Full name</label>
+          <input id="suName" type="text" class="field mb-3.5" placeholder="Alex Rivera" autocomplete="name" required>
+          <label class="label" for="suUsername" data-i18n="username">Username</label>
+          <div class="relative mb-1">
+            <span class="absolute top-1/2 -translate-y-1/2 start-3 text-slate-500 text-sm mono select-none">@</span>
+            <input id="suUsername" type="text" class="field ps-7" placeholder="alex_rivera" autocomplete="off" spellcheck="false" required>
+          </div>
+          <p id="usernameHint" class="text-[11px] min-h-[1.1rem] mb-2.5 text-slate-600" data-i18n="usernameHint">Lowercase letters, numbers, dots and underscores only</p>
+          <label class="label" for="suEmail" data-i18n="email">Email address</label>
+          <input id="suEmail" type="email" class="field mb-3.5" placeholder="name@example.com" autocomplete="email" required>
+          <label class="label" for="suPassword" data-i18n="password">Password</label>
+          <input id="suPassword" type="password" class="field mb-2" placeholder="••••••••" autocomplete="new-password" required>
+          <div class="flex items-center gap-2 mb-3.5">
+            <div class="flex-1 h-1.5 rounded-full bg-white/8 bg-slate-800 overflow-hidden"><div id="pwStrengthBar" class="h-full rounded-full transition-all duration-300" style="width:0%;background:#ea3943"></div></div>
+            <span id="pwStrengthText" class="text-[10px] font-bold text-slate-500 w-14 text-end">—</span>
+          </div>
+          <label class="label" for="suConfirm" data-i18n="confirmPassword">Confirm password</label>
+          <input id="suConfirm" type="password" class="field mb-3.5" placeholder="••••••••" autocomplete="new-password" required>
+          <label class="flex items-start gap-2.5 text-[11.5px] text-slate-400 cursor-pointer select-none mb-4 leading-snug">
+            <input id="suTerms" type="checkbox" class="accent-emerald-500 w-4 h-4 mt-0.5 shrink-0">
+            <span data-i18n="terms">I agree to the Terms of Service and Privacy Policy</span>
+          </label>
+          <button type="submit" class="btn btn-primary w-full !py-3 text-[.92rem]">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+            <span data-i18n="signUpBtn">Create Account</span>
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-[10px] text-slate-600 mt-5 leading-relaxed" data-i18n="copyTerms">Protected by 256-bit TLS encryption. SAHM does not custody user funds — virtual trading environment.</p>
+      <p class="text-center text-[10px] text-slate-700 mt-1.5" data-i18n="rights">© 2025 SAHM Financial Inc. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ APP SCREEN ═══════════════════════════ -->
+<div id="appScreen" class="hidden relative z-10 flex-col">
+
+  <!-- Header -->
+  <header class="h-14 shrink-0 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 border-b border-white/5 bg-[#070a12]/92 backdrop-blur-xl relative z-30">
+    <div class="flex items-center gap-2 pe-1">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(140deg,#34d399,#0ea5e9)">
+        <svg width="17" height="17" viewBox="0 0 32 32" fill="none"><line x1="10" y1="6" x2="10" y2="25" stroke="#04150c" stroke-width="3"/><rect x="7" y="11" width="6" height="9" rx="1.3" fill="#04150c"/><rect x="19" y="12" width="6" height="10" rx="1.3" fill="#04150c"/><line x1="22" y1="8" x2="22" y2="27" stroke="#04150c" stroke-width="3"/></svg>
+      </div>
+      <span class="text-lg font-extrabold text-white tracking-tight">SAHM</span>
+    </div>
+    <!-- Indices -->
+    <div class="hidden md:flex items-center gap-2 ms-1">
+      <div class="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[.03] px-2.5 py-1.5"><span class="text-[9px] font-bold text-slate-500 tracking-wider">S&amp;P 500</span><span id="idxSPXVal" class="mono text-[11px] text-slate-200">5,187.32</span><span id="idxSPXChg" class="mono text-[10px] chg-up">+0.42%</span></div>
+      <div class="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[.03] px-2.5 py-1.5"><span class="text-[9px] font-bold text-slate-500 tracking-wider">TASI</span><span id="idxTASIVal" class="mono text-[11px] text-slate-200">13,420.55</span><span id="idxTASIChg" class="mono text-[10px] chg-up">+0.81%</span></div>
+      <div class="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[.03] px-2.5 py-1.5"><span class="text-[9px] font-bold text-slate-500 tracking-wider">NASDAQ</span><span id="idxNDXVal" class="mono text-[11px] text-slate-200">16,274.94</span><span id="idxNDXChg" class="mono text-[10px] chg-up">+0.61%</span></div>
+    </div>
+    <div class="flex-1"></div>
+    <!-- Market status -->
+    <div class="hidden xs:flex sm:flex items-center gap-2 chip !border-emerald-400/25 !text-emerald-300"><span id="mktStatusDot" class="live-dot"></span><span id="mktStatusText" class="text-[10px] font-bold tracking-wide">LIVE · MARKET OPEN</span></div>
+    <!-- Language toggle -->
+    <div class="flex items-center rounded-lg border border-white/10 bg-white/[.03] p-0.5" role="group" aria-label="Language">
+      <button id="langToggleEn" class="px-2.5 py-1.5 rounded-md text-[10px] font-bold text-acc bg-emerald-400/10 transition-all">EN</button>
+      <button id="langToggleAr" class="px-2.5 py-1.5 rounded-md text-[10px] font-bold text-slate-500 transition-all" style="font-family:'IBM Plex Sans Arabic'">عربي</button>
+    </div>
+    <!-- Bell -->
+    <div class="relative">
+      <button id="bellBtn" class="icon-btn" aria-label="Notifications">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span id="notifBadge" class="absolute top-1 end-1 min-w-[16px] h-4 px-1 rounded-full bg-down text-[9px] font-bold text-white flex items-center justify-center">3</span>
+      </button>
+      <div id="notifDropdown" class="hidden absolute top-12 end-0 w-80 sm:w-96 card !rounded-xl shadow-2xl shadow-black/60 z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-white/8">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Notifications</span>
+          <button id="markAllReadBtn" class="text-[10px] font-bold text-acc hover:text-emerald-300">Mark all read</button>
+        </div>
+        <div id="notifList" class="max-h-80 overflow-y-auto"></div>
+      </div>
+    </div>
+    <!-- Avatar dropdown -->
+    <div class="relative">
+      <span id="headerUsername" class="hidden sm:inline text-[11px] mono text-slate-300">@username</span>
+      <button id="avatarBtn" class="flex items-center gap-2 rounded-xl p-1 hover:bg-white/5 transition-colors">
+        <span class="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center text-[10px] font-extrabold text-emerald-950" style="background:linear-gradient(135deg,#34d399,#10b981)">
+          <span id="navAvatarInit">AR</span>
+          <img id="navAvatarImg" class="absolute inset-0 w-full h-full object-cover hidden" alt="Profile">
+        </span>
+        <svg class="hidden sm:block text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div id="avatarDropdown" class="hidden absolute top-12 end-0 w-64 card !rounded-xl shadow-2xl shadow-black/60 z-50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/8">
+          <div id="dropName" class="text-sm font-bold text-white truncate">Alex Rivera</div>
+          <div id="dropEmail" class="text-[11px] text-slate-500 truncate">alex@sahm.io</div>
+        </div>
+        <button class="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-300 hover:bg-white/5 transition-colors" data-goto-settings>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span data-i18n="navProfile">View settings</span>
+        </button>
+        <button id="logoutBtn" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-rose-300 hover:bg-rose-500/8 hover:bg-rose-500/10 transition-colors border-t border-white/8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span data-i18n="signOut">Sign out</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Ticker tape -->
+  <div class="tape shrink-0" dir="ltr"><div id="tapeInner" class="tape-inner"></div></div>
+
+  <div class="flex flex-1 overflow-hidden relative">
+    <!-- Sidebar -->
+    <aside class="hidden lg:flex w-[228px] xl:w-[236px] shrink-0 flex-col border-e border-white/5 bg-[#070a12]/70 backdrop-blur-xl p-3 gap-1 overflow-y-auto">
+      <div class="px-2 pt-1.5 pb-2 text-[9px] tracking-[.22em] text-slate-600 font-extrabold" data-i18n="menu">MENU</div>
+      <button class="nav-item active" data-view="dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span data-i18n="navDashboard">Dashboard</span></button>
+      <button class="nav-item" data-view="markets"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="4" x2="9" y2="7.5"></line><rect x="6.4" y="7.5" width="5.2" height="9" rx="1.1"></rect><line x1="9" y1="16.5" x2="9" y2="20"></line><line x1="16.5" y1="3" x2="16.5" y2="8"></line><rect x="13.9" y="8" width="5.2" height="8" rx="1.1"></rect><line x1="16.5" y1="16" x2="16.5" y2="21"></line></svg><span data-i18n="navMarkets">Markets</span></button>
+      <button class="nav-item" data-view="portfolio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg><span data-i18n="navPortfolio">Portfolio</span></button>
+      <button class="nav-item" data-view="people"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span data-i18n="navPeople">People</span></button>
+      <button class="nav-item" data-view="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span data-i18n="navSettings">Settings</span></button>
+
+      <!-- Pro promo -->
+      <div class="mt-4 mx-1 rounded-2xl p-4 relative overflow-hidden border border-amber-400/20" style="background:linear-gradient(150deg,rgba(251,191,36,.13),rgba(251,191,36,.03) 60%)">
+        <div class="absolute -top-6 -end-6 w-24 h-24 rounded-full" style="background:radial-gradient(circle,rgba(251,191,36,.22),transparent 70%)"></div>
+        <div class="flex items-center gap-1.5 text-amber-300 text-[10px] font-extrabold tracking-[.18em]"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>SAHM PRO</div>
+        <p class="text-[11px] text-amber-100/70 mt-1.5 leading-snug">Margin, options &amp; API access. Unlock the full terminal.</p>
+        <button id="proBtn" class="mt-2.5 text-[10px] font-extrabold tracking-wide text-amber-300 border border-amber-400/35 rounded-lg px-3 py-1.5 hover:bg-amber-400/10 transition-colors">UPGRADE — $9/MO</button>
+      </div>
+
+      <div class="flex-1"></div>
+      <!-- User mini card -->
+      <div class="mx-1 border-t border-white/8 pt-3 flex items-center gap-2.5 px-1">
+        <span class="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center text-[10px] font-extrabold text-emerald-950 shrink-0" style="background:linear-gradient(135deg,#34d399,#10b981)">
+          <span id="sideAvatarInit">AR</span>
+          <img id="sideAvatarImg" class="absolute inset-0 w-full h-full object-cover hidden" alt="">
+        </span>
+        <div class="min-w-0">
+          <div id="sideName" class="text-[12px] font-bold text-slate-100 truncate">Alex Rivera</div>
+          <div id="sideUsername" class="text-[10px] text-slate-500 truncate mono">@alex_rivera</div>
+        </div>
+      </div>
+      <div class="mx-1 text-[9px] text-slate-600 px-1 pb-1" data-i18n="tradeNote">Paper trading · Virtual funds</div>
+    </aside>
+
+    <!-- Main scroll -->
+    <main id="mainScroll" class="flex-1 overflow-y-auto relative z-10">
+      <div class="max-w-[1460px] mx-auto p-3 sm:p-5 pb-28 lg:pb-8">
+
+        <!-- ═════════ VIEW · DASHBOARD ═════════ -->
+        <section id="view-dashboard" class="view">
+          <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+            <div>
+              <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight"><span id="dashGreeting">Good evening</span>, <span id="dashGreetingName" class="text-acc">Alex</span></h1>
+              <p id="dashDate" class="text-xs text-slate-500 mt-0.5">—</p>
+            </div>
+            <div class="chip !border-emerald-400/30 !text-emerald-300"><span class="live-dot"></span>LIVE</div>
+          </div>
+
+          <!-- Stat cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div class="card card-hover p-4">
+              <div class="flex items-center justify-between"><span class="label !mb-0" data-i18n="portfolioValue">Portfolio Value</span><span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(52,211,153,.12);color:#34d399"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span></div>
+              <div id="statTotalValue" class="mono text-lg sm:text-[1.35rem] font-bold text-white mt-2 leading-none">$0.00</div>
+              <div id="statTotalChange" class="mono text-[11px] font-semibold mt-1.5 chg-up">+$0.00 (+0.00%)</div>
+            </div>
+            <div class="card card-hover p-4">
+              <div class="flex items-center justify-between"><span class="label !mb-0" data-i18n="dayPL">Today's P/L</span><span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,.12);color:#38bdf8"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></span></div>
+              <div id="statDayPL" class="mono text-lg sm:text-[1.35rem] font-bold text-white mt-2 leading-none">$0.00</div>
+              <div class="text-[10px] text-slate-500 mt-1.5">24h · vs previous close</div>
+            </div>
+            <div class="card card-hover p-4">
+              <div class="flex items-center justify-between"><span class="label !mb-0" data-i18n="cashBalance">Cash Balance</span><span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(251,191,36,.12);color:#fbbf24"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></span></div>
+              <div id="statCash" class="mono text-lg sm:text-[1.35rem] font-bold text-white mt-2 leading-none">$0.00</div>
+              <div class="text-[10px] text-slate-500 mt-1.5" data-i18n="buyingPower">Available buying power</div>
+            </div>
+            <div class="card card-hover p-4">
+              <div class="flex items-center justify-between"><span class="label !mb-0" data-i18n="totalPL">Total P/L</span><span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(167,139,250,.12);color:#a78bfa"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span></div>
+              <div id="statTotalPL" class="mono text-lg sm:text-[1.35rem] font-bold text-white mt-2 leading-none">$0.00</div>
+              <div id="statTotalPLPct" class="mono text-[11px] font-semibold mt-1.5 chg-up">+0.00%</div>
+            </div>
+          </div>
+
+          <!-- Performance + Watchlist -->
+          <div class="grid xl:grid-cols-3 gap-3 sm:gap-4 mb-4">
+            <div class="card xl:col-span-2 p-4 sm:p-5">
+              <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+                <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider" data-i18n="perfTitle">Portfolio Performance</h2>
+                <div class="flex items-center gap-1 bg-black/30 border border-white/8 rounded-lg p-1">
+                  <button class="range-pill pf-range" data-range="1M">1M</button>
+                  <button class="range-pill pf-range" data-range="3M">3M</button>
+                  <button class="range-pill pf-range active" data-range="6M">6M</button>
+                  <button class="range-pill pf-range" data-range="1Y">1Y</button>
+                </div>
+              </div>
+              <div id="dashChart" class="w-full"></div>
+            </div>
+            <div class="card p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-1">
+                <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span data-i18n="watchlist">My Watchlist</span></h2>
+                <button class="text-[10px] font-bold text-acc hover:text-emerald-300 flex items-center gap-1" data-goto="markets"><span data-i18n="viewAll">View all</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"></polyline></svg></button>
+              </div>
+              <div id="watchlistBody" class="mt-1"></div>
+              <div id="watchlistEmpty" class="hidden text-center py-8"><p class="text-sm text-slate-500">Star stocks in Markets to pin them here.</p></div>
+            </div>
+          </div>
+
+          <!-- Movers + Recent tx -->
+          <div class="grid md:grid-cols-2 gap-3 sm:gap-4">
+            <div class="card p-4 sm:p-5">
+              <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-2" data-i18n="topMovers">Top Movers</h2>
+              <div id="topMovers"></div>
+            </div>
+            <div class="card p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-2">
+                <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider" data-i18n="recentTx">Recent Transactions</h2>
+                <button class="text-[10px] font-bold text-acc hover:text-emerald-300 flex items-center gap-1" data-goto="portfolio"><span data-i18n="viewAll">View all</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"></polyline></svg></button>
+              </div>
+              <div id="recentTxList"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═════════ VIEW · MARKETS ═════════ -->
+        <section id="view-markets" class="view hidden">
+          <div class="grid xl:grid-cols-3 gap-3 sm:gap-4">
+            <!-- Chart column -->
+            <div class="xl:col-span-2 space-y-3 sm:space-y-4">
+              <div class="card p-4 sm:p-5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span id="mkIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xs font-extrabold shrink-0">NV</span>
+                    <div>
+                      <div class="flex items-center gap-2 flex-wrap"><h1 id="mkName" class="text-base sm:text-lg font-extrabold text-white leading-tight">NVIDIA Corporation</h1><span id="mkSymChip" class="chip !text-[9px] mono !py-0.5">NVDA · NASDAQ</span></div>
+                      <div class="mono text-[10px] text-slate-500 mt-0.5" id="mkCurChip">USD · Common Stock</div>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="text-end">
+                      <div id="mkPrice" class="mono text-xl sm:text-2xl font-bold text-white leading-none">$875.42</div>
+                      <div id="mkChange" class="mono text-[11px] font-semibold mt-1 chg-up">+$0.00 (+0.00%)</div>
+                    </div>
+                    <button id="starWatchBtn" class="icon-btn mt-0.5" aria-label="Toggle watchlist">
+                      <svg id="starWatchSvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between flex-wrap gap-2 mt-4 mb-2">
+                  <div class="flex items-center gap-1 bg-black/30 border border-white/8 rounded-lg p-1">
+                    <button id="chartAreaBtn" class="range-pill active" style="display:flex;align-items:center;gap:.35rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"></path><path d="M3 21h18"></path></svg>Area</button>
+                    <button id="chartCandlesBtn" class="range-pill" style="display:flex;align-items:center;gap:.35rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="4" x2="9" y2="20"></line><rect x="6.5" y="8" width="5" height="7" rx="1"></rect><line x1="17" y1="6" x2="17" y2="18"></line><rect x="14.5" y="10" width="5" height="6" rx="1"></rect></svg>Candles</button>
+                  </div>
+                  <div class="flex items-center gap-1 bg-black/30 border border-white/8 rounded-lg p-1">
+                    <button class="range-pill mkt-range" data-tf="1D">1D</button>
+                    <button class="range-pill mkt-range" data-tf="1M">1M</button>
+                    <button class="range-pill mkt-range active" data-tf="3M">3M</button>
+                    <button class="range-pill mkt-range" data-tf="6M">6M</button>
+                    <button class="range-pill mkt-range" data-tf="1Y">1Y</button>
+                  </div>
+                </div>
+                <div id="marketChart" class="w-full"></div>
+              </div>
+              <!-- Key stats -->
+              <div class="card p-4 sm:p-5">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3" data-i18n="stockStats">Key Statistics</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3">
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="open">Open</div><div id="stOpen" class="mono text-[13px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="high">High</div><div id="stHigh" class="mono text-[13px] text-up mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="low">Low</div><div id="stLow" class="mono text-[13px] text-down mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="prevClose">Prev. Close</div><div id="stPrev" class="mono text-[13px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="volume">Volume</div><div id="stVol" class="mono text-[13px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="mktCap">Market Cap</div><div id="stCap" class="mono text-[13px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="sector">Sector</div><div id="stSector" class="text-[13px] text-slate-100 mt-0.5 truncate">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="high52">52W Range</div><div id="stHigh52" class="mono text-[11px] text-slate-100 mt-1">—</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Order column -->
+            <div class="space-y-3 sm:space-y-4">
+              <div class="card p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-3">
+                  <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider" data-i18n="placeOrder">Place Order</h2>
+                  <span class="chip !text-[9px] !py-0.5 !border-sky-400/30 !text-sky-300" data-i18n="marketOrder">MARKET ORDER</span>
+                </div>
+                <div class="seg mb-4">
+                  <button id="segBuyBtn" class="seg-btn buy-active">BUY</button>
+                  <button id="segSellBtn" class="seg-btn">SELL</button>
+                </div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="label !mb-0" for="orderQty" data-i18n="qty">Quantity</label>
+                  <span id="maxInfo" class="mono text-[10px] text-slate-500">Max 0</span>
+                </div>
+                <div class="flex items-stretch gap-2 mb-2">
+                  <button id="qtyMinus" class="icon-btn !w-11 !h-11 border border-white/10 bg-white/[.03] !rounded-xl text-lg font-bold">−</button>
+                  <input id="orderQty" type="number" min="0" step="1" value="1" class="field !text-center mono text-lg font-bold flex-1 !h-11">
+                  <button id="qtyPlus" class="icon-btn !w-11 !h-11 border border-white/10 bg-white/[.03] !rounded-xl text-lg font-bold">+</button>
+                </div>
+                <div class="flex gap-1.5 mb-4">
+                  <button class="qty-pill" data-pct="0.25">25%</button>
+                  <button class="qty-pill" data-pct="0.5">50%</button>
+                  <button class="qty-pill" data-pct="0.75">75%</button>
+                  <button class="qty-pill" data-pct="1">100%</button>
+                </div>
+                <div class="space-y-2 text-[12px] border border-white/8 rounded-xl p-3 bg-black/25 mb-3">
+                  <div class="flex justify-between"><span class="text-slate-500" data-i18n="estPrice">Est. price</span><span id="estPrice" class="mono text-slate-100">—</span></div>
+                  <div class="flex justify-between"><span class="text-slate-500" data-i18n="subtotal">Subtotal</span><span id="estSubtotal" class="mono text-slate-100">—</span></div>
+                  <div class="flex justify-between"><span class="text-slate-500" data-i18n="commission">Commission</span><span class="mono text-up text-[11px] font-bold" data-i18n="free">FREE</span></div>
+                  <div class="h-px bg-white/10 my-1"></div>
+                  <div class="flex justify-between items-baseline"><span class="text-slate-300 font-semibold" data-i18n="estTotal">Est. total</span><span id="estTotal" class="mono text-base font-bold text-white">—</span></div>
+                </div>
+                <div id="orderError" class="hidden text-[11px] text-rose-300 bg-rose-500/10 border border-rose-500/25 rounded-lg px-3 py-2 mb-3"></div>
+                <button id="placeOrderBtn" class="btn btn-primary w-full !py-3"><span id="placeOrderLabel">Review Buy Order</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button>
+              </div>
+              <!-- Position card -->
+              <div class="card p-4 sm:p-5">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3" data-i18n="yourPosition">Your Position</h2>
+                <div id="posEmpty" class="hidden text-center py-4">
+                  <p class="text-[13px] text-slate-500"><span data-i18n="noPosition">No position in</span> <span id="posEmptySym" class="mono font-bold text-slate-300">NVDA</span></p>
+                  <p class="text-[10px] text-slate-600 mt-1" data-i18n="noPositionSub">Place your first order to build a position.</p>
+                </div>
+                <div id="posData" class="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="sharesHeld">Shares</div><div id="posShares" class="mono text-[14px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="avgCost">Avg. cost</div><div id="posAvg" class="mono text-[14px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="mktValue">Market value</div><div id="posValue" class="mono text-[14px] text-slate-100 mt-0.5">—</div></div>
+                  <div><div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="unrealPL">Unrealized P/L</div><div id="posPnl" class="mono text-[14px] font-bold mt-0.5 chg-up">—</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- All stocks table -->
+          <div class="card mt-3 sm:mt-4 overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5 border-b border-white/8">
+              <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider" data-i18n="allStocks">All Stocks</h2>
+              <div class="relative w-56">
+                <svg class="absolute top-1/2 -translate-y-1/2 start-3 text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="mktFilter" type="text" class="field ps-9 !py-2 !text-xs" data-i18n-ph="searchStocks" placeholder="Search symbol or name…">
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[660px] border-collapse">
+                <thead><tr class="border-b border-white/8"><th class="th-cell">Symbol</th><th class="th-cell">Price</th><th class="th-cell">Change</th><th class="th-cell hidden md:table-cell">High</th><th class="th-cell hidden md:table-cell">Low</th><th class="th-cell hidden lg:table-cell">Volume</th><th class="th-cell hidden sm:table-cell">Trend</th><th class="th-cell text-end">★</th></tr></thead>
+                <tbody id="stocksTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═════════ VIEW · PORTFOLIO ═════════ -->
+        <section id="view-portfolio" class="view hidden">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight" data-i18n="portTitle">My Portfolio</h1>
+            <button id="exportCsvBtn" class="btn btn-ghost !py-2 !text-xs"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span data-i18n="exportCsv">Export CSV</span></button>
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div class="card p-4"><span class="label" data-i18n="totalValue">Total Value</span><div id="pfTotalValue" class="mono text-lg font-bold text-white mt-1.5 leading-none">$0</div><div id="pfTotalChange" class="mono text-[11px] font-semibold mt-1.5 chg-up">+$0 (+0.00%)</div></div>
+            <div class="card p-4"><span class="label" data-i18n="dayPL">Today's P/L</span><div id="pfDayPL" class="mono text-lg font-bold text-white mt-1.5 leading-none">$0</div><div class="text-[10px] text-slate-500 mt-1.5">vs previous close</div></div>
+            <div class="card p-4"><span class="label" data-i18n="pfCash">Cash</span><div id="pfCash" class="mono text-lg font-bold text-white mt-1.5 leading-none">$0</div><div class="text-[10px] text-slate-500 mt-1.5" data-i18n="buyingPower">Available buying power</div></div>
+            <div class="card p-4"><span class="label" data-i18n="unreal">Unrealized P/L</span><div id="pfUnrealPL" class="mono text-lg font-bold text-up mt-1.5 leading-none">$0</div><div id="pfUnrealPLPct" class="mono text-[11px] font-semibold mt-1.5 chg-up">+0.00%</div></div>
+          </div>
+          <div class="grid xl:grid-cols-5 gap-3 sm:gap-4 mb-4">
+            <div class="card p-5 xl:col-span-2">
+              <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4" data-i18n="allocTitle">Asset Allocation</h2>
+              <div class="relative w-40 h-40 mx-auto">
+                <svg id="donutSvg" viewBox="0 0 140 140" class="w-full h-full -rotate-90"></svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center"><div id="donutCenterVal" class="mono text-sm font-bold text-white">$0</div><div class="text-[8px] uppercase tracking-widest text-slate-500 font-bold mt-0.5" data-i18n="invested">Invested</div></div>
+              </div>
+              <div id="donutLegend" class="mt-4 space-y-1.5"></div>
+            </div>
+            <div class="card xl:col-span-3 overflow-hidden">
+              <div class="p-4 sm:p-5 pb-2 flex items-center justify-between"><h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider" data-i18n="holdingsTitle">Holdings</h2><span id="holdingsCount" class="chip !text-[9px]">0</span></div>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[540px] border-collapse">
+                  <thead><tr class="border-b border-white/8"><th class="th-cell">Symbol</th><th class="th-cell">Shares</th><th class="th-cell">Price</th><th class="th-cell">Mkt Value</th><th class="th-cell text-end">P/L</th></tr></thead>
+                  <tbody id="holdingsBody"></tbody>
+                </table>
+                <div id="holdingsEmpty" class="hidden text-center py-10">
+                  <p class="text-sm text-slate-400 font-semibold" data-i18n="noHoldings">No open positions yet</p>
+                  <button class="btn btn-primary !py-2 !text-xs mt-3" data-goto="markets"><span data-i18n="startTrading">Start trading</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider" data-i18n="txHistory">Transaction History</h2>
+              <div class="flex items-center gap-1 bg-black/30 border border-white/8 rounded-lg p-1">
+                <button class="range-pill tx-filter active" data-filter="all" data-i18n="all">All</button>
+                <button class="range-pill tx-filter" data-filter="buy" data-i18n="buys">Buys</button>
+                <button class="range-pill tx-filter" data-filter="sell" data-i18n="sells">Sells</button>
+              </div>
+            </div>
+            <div id="txList" class="max-h-[420px] overflow-y-auto"></div>
+          </div>
+        </section>
+
+        <!-- ═════════ VIEW · PEOPLE ═════════ -->
+        <section id="view-people" class="view hidden">
+          <div class="mb-4">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight" data-i18n="peopleTitle">Discover Investors</h1>
+            <p class="text-xs text-slate-500 mt-1" data-i18n="peopleSub">Search by username and explore public portfolios from the SAHM community.</p>
+          </div>
+          <div class="relative max-w-xl mb-5">
+            <svg class="absolute top-1/2 -translate-y-1/2 start-4 text-slate-500" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="peopleSearch" type="text" class="field ps-12 !py-3.5 !text-sm !rounded-xl" data-i18n-ph="searchPeoplePh" placeholder="Search by username or name…" autocomplete="off" spellcheck="false">
+          </div>
+          <div id="peopleGrid" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"></div>
+          <div id="peopleEmpty" class="hidden text-center py-16">
+            <svg class="mx-auto text-slate-700 mb-3" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            <p class="text-sm text-slate-400"><span data-i18n="noPeople">No investors found for</span> “<span id="peopleEmptyQuery" class="text-slate-200 font-semibold"></span>”</p>
+          </div>
+        </section>
+
+        <!-- ═════════ VIEW · SETTINGS ═════════ -->
+        <section id="view-settings" class="view hidden">
+          <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-4" data-i18n="settingsTitle">Account Settings</h1>
+          <div class="flex gap-1.5 mb-5 overflow-x-auto pb-1 bg-black/30 border border-white/8 rounded-xl p-1.5 w-max max-w-full">
+            <button class="settings-tab active" data-tab="panelProfile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span data-i18n="tabProfile">Profile</span></button>
+            <button class="settings-tab" data-tab="panelSecurity"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span data-i18n="tabSecurity">Security</span></button>
+            <button class="settings-tab" data-tab="panelPreferences"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v4m0 14v4M4.2 4.2l2.8 2.8m10 10 2.8 2.8M1 12h4m14 0h4M4.2 19.8l2.8-2.8m10-10 2.8-2.8"></path></svg><span data-i18n="tabPrefs">Preferences</span></button>
+          </div>
+
+          <!-- PANEL · PROFILE -->
+          <div id="panelProfile" class="settings-panel max-w-3xl">
+            <div class="card p-5 sm:p-6">
+              <p class="text-xs text-slate-500 mb-5" data-i18n="profileDesc">How you appear across SAHM</p>
+              <div class="flex flex-col sm:flex-row sm:items-center gap-5 mb-6 pb-6 border-b border-white/8">
+                <div class="relative group shrink-0">
+                  <span class="relative w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-extrabold text-emerald-950" style="background:linear-gradient(135deg,#34d399,#10b981)">
+                    <span id="avatarInitials">AR</span>
+                    <img id="avatarImg" class="absolute inset-0 w-full h-full object-cover hidden" alt="Profile photo">
+                  </span>
+                  <button id="uploadAvatarBtn" class="absolute -bottom-2 -end-2 w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-emerald-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-400 transition-colors border-2 border-[#0d1220]" aria-label="Upload photo">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  </button>
+                  <input id="avatarFile" type="file" accept="image/*" class="hidden">
+                </div>
+                <div class="min-w-0">
+                  <div id="settingsNamePreview" class="text-lg font-extrabold text-white">Alex Rivera</div>
+                  <div id="settingsHandlePreview" class="mono text-xs text-slate-500">@alex_rivera</div>
+                  <button id="changePhotoBtn" class="text-xs font-bold text-acc hover:text-emerald-300 mt-2 transition-colors" data-i18n="changePhoto">Change photo</button>
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div><label class="label" for="setName" data-i18n="fullNameL">Full name</label><input id="setName" type="text" class="field" maxlength="60"></div>
+                <div><label class="label" for="setUsername" data-i18n="usernameL">Username</label>
+                  <div class="relative"><span class="absolute top-1/2 -translate-y-1/2 start-3 text-slate-500 text-sm mono select-none">@</span><input id="setUsername" type="text" class="field ps-7 mono" maxlength="20" spellcheck="false"></div>
+                  <p id="setUsernameHint" class="text-[10px] mt-1 min-h-[1rem] text-slate-600"></p>
+                </div>
+              </div>
+              <div class="mt-4"><label class="label" for="setEmail" data-i18n="emailL">Email</label>
+                <div class="relative"><input id="setEmail" type="email" class="field pe-28" readonly>
+                  <span class="absolute top-1/2 -translate-y-1/2 end-2 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/12 border border-emerald-400/30 rounded-md px-2 py-1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 10"></polyline></svg><span data-i18n="verified">Verified</span></span>
+                </div>
+              </div>
+              <div class="mt-4"><label class="label" for="setBio" data-i18n="bioL">Bio</label><textarea id="setBio" class="field resize-none" rows="3" maxlength="160" data-i18n-ph="bioPh" placeholder="Tell the community about your investing style…"></textarea><div class="text-[10px] text-slate-600 text-end mt-1 mono"><span id="bioCount">0</span>/160</div></div>
+              <div class="flex justify-end mt-4"><button id="saveProfileBtn" class="btn btn-primary min-w-[150px]"><span class="save-label" data-i18n="saveChanges">Save changes</span></button></div>
+            </div>
+          </div>
+
+          <!-- PANEL · SECURITY -->
+          <div id="panelSecurity" class="settings-panel hidden max-w-3xl space-y-4">
+            <div class="card p-5 sm:p-6">
+              <p class="text-xs text-slate-500 mb-4" data-i18n="securityDesc">Keep your account fortress-safe</p>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2"><label class="label" for="curPw" data-i18n="currentPw">Current password</label><input id="curPw" type="password" class="field" placeholder="••••••••" autocomplete="current-password"></div>
+                <div><label class="label" for="newPw" data-i18n="newPw">New password</label><input id="newPw" type="password" class="field" placeholder="••••••••" autocomplete="new-password"></div>
+                <div><label class="label" for="confirmNewPw" data-i18n="confirmNewPw">Confirm new password</label><input id="confirmNewPw" type="password" class="field" placeholder="••••••••" autocomplete="new-password"></div>
+              </div>
+              <div class="flex items-center gap-2 mt-3">
+                <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="pwBar2" class="h-full rounded-full transition-all duration-300" style="width:0%;background:#ea3943"></div></div>
+                <span id="pwText2" class="text-[10px] font-bold text-slate-500 w-14 text-end">—</span>
+              </div>
+              <div class="flex justify-end mt-4"><button id="updatePwBtn" class="btn btn-primary min-w-[160px]"><span data-i18n="updatePw">Update password</span></button></div>
+            </div>
+
+            <div class="card p-5 sm:p-6 flex items-center gap-4">
+              <span class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(52,211,153,.12);color:#34d399"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11.5 14.5 15 11"></polyline></svg></span>
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-bold text-white" data-i18n="twoFA">Two-Factor Authentication</div>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-snug" data-i18n="twoFADesc">Require a 6-digit one-time passcode at every sign-in</p>
+              </div>
+              <input type="checkbox" id="twoFASwitch" class="switch" role="switch" aria-label="Toggle 2FA">
+            </div>
+
+            <div class="card p-5 sm:p-6">
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="sessions">Active Sessions</h3>
+                <button id="signOutOthersBtn" class="text-[11px] font-bold text-rose-300 hover:text-rose-200 transition-colors" data-i18n="signOutOthers">Sign out of other sessions</button>
+              </div>
+              <div id="sessionsList" class="space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- PANEL · PREFERENCES -->
+          <div id="panelPreferences" class="settings-panel hidden max-w-3xl space-y-4">
+            <div class="card p-5 sm:p-6">
+              <p class="text-xs text-slate-500 mb-4" data-i18n="prefsDesc">Language and notification preferences</p>
+              <label class="label" data-i18n="languageL">Language</label>
+              <div class="grid grid-cols-2 gap-3">
+                <button id="langCardEn" class="lang-card active">
+                  <div class="flex items-center justify-between"><span class="text-2xl font-extrabold text-white">Aa</span><span class="lang-check w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#04150c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 10"></polyline></svg></span></div>
+                  <div class="text-sm font-bold text-slate-100 mt-2">English</div>
+                  <div class="text-[10px] text-slate-500" data-i18n="langEnDesc">English (US)</div>
+                </button>
+                <button id="langCardAr" class="lang-card">
+                  <div class="flex items-center justify-between"><span class="text-2xl font-extrabold text-white" style="font-family:'IBM Plex Sans Arabic'">أب</span><span class="lang-check w-5 h-5 rounded-full border border-white/15 flex items-center justify-center text-transparent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 10"></polyline></svg></span></div>
+                  <div class="text-sm font-bold text-slate-100 mt-2" style="font-family:'IBM Plex Sans Arabic'">العربية</div>
+                  <div class="text-[10px] text-slate-500" data-i18n="langArDesc">Arabic</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="card p-5 sm:p-6">
+              <label class="label" for="setCurrency">Display currency</label>
+              <select id="setCurrency" class="field"><option value="USD">USD — US Dollar</option><option value="SAR">SAR — Saudi Riyal</option></select>
+              <p class="text-[10px] text-slate-500 mt-2">Choose from supported world currencies. This changes the currency display; exchange-rate conversion requires a live rate provider.</p>
+            </div>
+
+            <div class="card p-5 sm:p-6">
+              <label class="label" data-i18n="notifs">Notifications</label>
+              <div class="divide-y divide-white/6">
+                <div class="flex items-center gap-3 py-3"><div class="min-w-0 flex-1"><div class="text-[13px] font-semibold text-slate-100" data-i18n="notifPrice">Price alerts</div><p class="text-[10px] text-slate-500" data-i18n="notifPriceD">Get notified on big moves in your watchlist</p></div><input type="checkbox" id="notifPrice" class="switch" checked></div>
+                <div class="flex items-center gap-3 py-3"><div class="min-w-0 flex-1"><div class="text-[13px] font-semibold text-slate-100" data-i18n="notifOrder">Order fills</div><p class="text-[10px] text-slate-500" data-i18n="notifOrderD">Confirmations when orders execute</p></div><input type="checkbox" id="notifOrder" class="switch" checked></div>
+                <div class="flex items-center gap-3 py-3"><div class="min-w-0 flex-1"><div class="text-[13px] font-semibold text-slate-100" data-i18n="notifWeekly">Weekly digest</div><p class="text-[10px] text-slate-500" data-i18n="notifWeeklyD">Your portfolio performance every Friday</p></div><input type="checkbox" id="notifWeekly" class="switch"></div>
+              </div>
+            </div>
+
+            <div class="card p-5 sm:p-6 !border-rose-500/25" style="background:linear-gradient(180deg,rgba(234,57,67,.06),rgba(13,18,32,.6))">
+              <h3 class="text-xs font-extrabold text-rose-300 uppercase tracking-[.18em] mb-3" data-i18n="dangerZone">Danger Zone</h3>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2">
+                <div><div class="text-[13px] font-semibold text-slate-100" data-i18n="resetDemo">Reset demo data</div><p class="text-[10px] text-slate-500" data-i18n="resetDemoD">Restore the original demo account and clear local changes</p></div>
+                <button id="resetDemoBtn" class="btn btn-danger !py-2 !text-xs shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span data-i18n="resetBtn">Reset data</span></button>
+              </div>
+              <div class="h-px bg-rose-500/15 my-1"></div>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2">
+                <div><div class="text-[13px] font-semibold text-slate-100" data-i18n="signOutAll">Sign out everywhere</div><p class="text-[10px] text-slate-500" data-i18n="signOutAllD">End all active sessions on every device</p></div>
+                <button id="signOutAllBtn" class="btn btn-ghost !py-2 !text-xs shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg><span data-i18n="signOut">Sign out</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Mobile bottom nav -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 flex border-t border-white/8 bg-[#070a12]/95 backdrop-blur-xl px-1" style="padding-bottom:env(safe-area-inset-bottom)">
+    <button class="mnav-item active" data-view="dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span data-i18n="navDashboard">Dashboard</span></button>
+    <button class="mnav-item" data-view="markets"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="4" x2="9" y2="7.5"></line><rect x="6.4" y="7.5" width="5.2" height="9" rx="1.1"></rect><line x1="9" y1="16.5" x2="9" y2="20"></line><line x1="16.5" y1="3" x2="16.5" y2="8"></line><rect x="13.9" y="8" width="5.2" height="8" rx="1.1"></rect><line x1="16.5" y1="16" x2="16.5" y2="21"></line></svg><span data-i18n="navMarkets">Markets</span></button>
+    <button class="mnav-item" data-view="portfolio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg><span data-i18n="navPortfolio">Portfolio</span></button>
+    <button class="mnav-item" data-view="people"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span data-i18n="navPeople">People</span></button>
+    <button class="mnav-item" data-view="settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span data-i18n="navSettings">Settings</span></button>
+  </nav>
+</div>
+
+<!-- ═══════════ MODAL · OTP ═══════════ -->
+<div id="otpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="otpTitle">
+  <div class="modal-panel card w-full max-w-sm p-6 sm:p-7 text-center relative">
+    <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4" style="background:linear-gradient(140deg,rgba(52,211,153,.25),rgba(14,165,233,.2));border:1px solid rgba(52,211,153,.35)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11.5 14.5 15 11"></polyline></svg>
+    </div>
+    <h3 id="otpTitle" class="text-lg font-extrabold text-white">Verify your email</h3>
+    <p id="otpSubtitle" class="text-xs text-slate-500 mt-1.5 leading-relaxed">We sent a 6-digit one-time passcode to your email.</p>
+    <div class="flex justify-center gap-2 sm:gap-2.5 my-5" dir="ltr">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1">
+    </div>
+    <p id="otpError" class="hidden text-[11px] text-rose-300 font-semibold mb-3"></p>
+    <p id="otpHint" class="text-[10px] text-slate-500 mb-4"></p>
+    <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 mb-4">
+      <span id="otpTimerWrap">Resend code in <span id="otpTimerText" class="mono text-slate-300 font-bold">0:30</span></span>
+      <button id="otpResendBtn" class="hidden text-acc font-bold hover:text-emerald-300">Resend code</button>
+    </div>
+    <div class="flex gap-2">
+      <button id="otpCancelBtn" class="btn btn-ghost flex-1">Cancel</button>
+      <button id="otpVerifyBtn" class="btn btn-primary flex-1"><span data-i18n="verify">Verify</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL · ORDER CONFIRM ═══════════ -->
+<div id="orderModal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-panel card w-full max-w-md p-6 relative">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-extrabold text-white" data-i18n="confirmOrder">Confirm Order</h3>
+      <span id="ocBadge" class="chip !text-[10px] font-extrabold !border-emerald-400/40 !text-emerald-300 !bg-emerald-500/10">BUY</span>
+    </div>
+    <div class="flex items-center gap-3 pb-4 border-b border-white/8 mb-4">
+      <span id="ocIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xs font-extrabold shrink-0">NV</span>
+      <div class="min-w-0"><div id="ocSymName" class="text-sm font-bold text-white">NVIDIA Corporation</div><div id="ocSym" class="mono text-[11px] text-slate-500">NVDA · NASDAQ</div></div>
+    </div>
+    <div class="space-y-2.5 text-[13px]">
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="ocShares">Shares</span><span id="ocShares" class="mono text-slate-100 font-semibold">0</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="ocPrice">Est. price</span><span id="ocPrice" class="mono text-slate-100">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="ocSubtotal">Subtotal</span><span id="ocSubtotal" class="mono text-slate-100">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="ocFee">Commission</span><span class="mono text-up text-[11px] font-bold" data-i18n="free">FREE</span></div>
+      <div class="h-px bg-white/10"></div>
+      <div class="flex justify-between items-baseline"><span class="text-slate-300 font-bold" data-i18n="ocTotal">Total</span><span id="ocTotal" class="mono text-xl font-extrabold text-white">—</span></div>
+    </div>
+    <p class="text-[10px] text-slate-600 mt-3 flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span data-i18n="ocNote">Market orders execute instantly at the best available price.</span></p>
+    <div class="flex gap-2 mt-5">
+      <button id="ocCancelBtn" class="btn btn-ghost flex-1" data-i18n="cancel">Cancel</button>
+      <button id="ocConfirmBtn" class="btn btn-primary flex-1"><span data-i18n="ocConfirm">Confirm Order</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL · ORDER SUCCESS ═══════════ -->
+<div id="successModal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-panel card w-full max-w-sm p-7 text-center">
+    <svg class="mx-auto mb-4" width="84" height="84" viewBox="0 0 84 84" fill="none">
+      <circle class="check-circle" cx="42" cy="42" r="26" stroke="#34d399" stroke-width="3.5" stroke-linecap="round"/>
+      <path class="check-mark" d="M31 43.5 39.5 52 55 35" stroke="#34d399" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h3 class="text-lg font-extrabold text-white" data-i18n="orderFilled">Order Executed</h3>
+    <p id="osDetail" class="mono text-[13px] text-slate-300 mt-2">Bought 25 × AAPL @ $178.42</p>
+    <p class="text-[10px] text-slate-500 mt-1.5" data-i18n="orderFilledMsg">Your order filled at market price.</p>
+    <div class="flex gap-2 mt-6">
+      <button id="osDoneBtn" class="btn btn-ghost flex-1" data-i18n="done">Done</button>
+      <button id="viewPortfolioBtn" class="btn btn-primary flex-1" data-i18n="viewPortfolio">View Portfolio</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL · USER PROFILE ═══════════ -->
+<div id="userModal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-panel card w-full max-w-md overflow-hidden relative">
+    <div class="h-20 relative" style="background:linear-gradient(120deg,rgba(52,211,153,.3),rgba(14,165,233,.28))">
+      <button id="umCloseBtn" class="icon-btn absolute top-3 end-3 bg-black/30 backdrop-blur"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="px-6 pb-6 -mt-10">
+      <span class="relative block w-20 h-20 rounded-2xl overflow-hidden border-4 border-[#10151f] bg-slate-800 flex items-center justify-center text-lg font-extrabold text-slate-300">
+        <span id="umInitials">AH</span>
+        <img id="umImg" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'">
+      </span>
+      <div class="flex items-center gap-2 mt-3">
+        <h3 id="umName" class="text-lg font-extrabold text-white">Ahmed Al-Harbi</h3>
+        <svg id="umVerified" width="17" height="17" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 1l3.1 2.6 3.9-.3 1.6 3.6 3.3 2.2-1.4 3.7 1.4 3.7-3.3 2.2-1.6 3.6-3.9-.3L12 27l-3.1-2.6-3.9.3-1.6-3.6L0.1 19-1.3 15.2 0.1 11.5 1.5 7.8l3.3-2.2 1.6-3.6 3.9.3z" transform="scale(0.88) translate(1.5,-1.5)" opacity="0.95"></path><polyline points="8.5 12.5 11 15 15.5 10" fill="none" stroke="#04150c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+      </div>
+      <div id="umHandle" class="mono text-[11px] text-slate-500">@ahmed_alharbi</div>
+      <p id="umBio" class="text-xs text-slate-400 mt-2 leading-relaxed">Value investor · Riyadh</p>
+      <div class="grid grid-cols-3 gap-2 my-4 text-center">
+        <div class="rounded-xl border border-white/8 bg-white/[.03] py-2.5"><div id="umReturn" class="mono text-sm font-extrabold chg-up">+24.6%</div><div class="text-[9px] uppercase tracking-wider text-slate-500 font-bold mt-0.5" data-i18n="ret30">Return</div></div>
+        <div class="rounded-xl border border-white/8 bg-white/[.03] py-2.5"><div id="umFollowers" class="mono text-sm font-extrabold text-slate-100">1,284</div><div class="text-[9px] uppercase tracking-wider text-slate-500 font-bold mt-0.5" data-i18n="followers">Followers</div></div>
+        <div class="rounded-xl border border-white/8 bg-white/[.03] py-2.5"><div id="umJoined" class="mono text-sm font-extrabold text-slate-100">2021</div><div class="text-[9px] uppercase tracking-wider text-slate-500 font-bold mt-0.5" data-i18n="since">Since</div></div>
+      </div>
+      <h4 class="text-[10px] font-extrabold uppercase tracking-[.18em] text-slate-500 mb-2" data-i18n="holdingsTitle">Holdings</h4>
+      <div class="max-h-44 overflow-y-auto rounded-xl border border-white/8">
+        <table class="w-full"><tbody id="umHoldings"></tbody></table>
+      </div>
+      <button id="umFollowBtn" class="btn btn-primary w-full mt-4">Follow</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL · GENERIC CONFIRM ═══════════ -->
+<div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-panel card w-full max-w-sm p-6">
+    <h3 id="cmTitle" class="text-base font-extrabold text-white">Confirm</h3>
+    <p id="cmMsg" class="text-xs text-slate-400 mt-2 leading-relaxed">Are you sure?</p>
+    <div class="flex gap-2 mt-5">
+      <button id="cmCancelBtn" class="btn btn-ghost flex-1" data-i18n="cancel">Cancel</button>
+      <button id="cmConfirmBtn" class="btn btn-danger-solid flex-1" style="background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toastWrap" class="fixed bottom-24 lg:bottom-6 end-3 sm:end-5 z-[70] flex flex-col gap-2"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   SAHM — Global Stock Trading Platform
+   ============================================================ */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const SAR_PER_USD = 3.75;
+
+function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+function strHash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+const toUSD = (v, cur) => cur === 'SAR' ? v / SAR_PER_USD : v;
+const fmtNum = (n, dp=2) => new Intl.NumberFormat(state.lang==='ar'?'ar':'en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}).format(n);
+const fmtMoney = (n, cur='USD', dp=2) => new Intl.NumberFormat(state.lang==='ar'?'ar':'en-US',{style:'currency',currency:cur,minimumFractionDigits:dp,maximumFractionDigits:dp}).format(n);
+const fmtPct = (n, sign=true) => (sign && n>0 ? '+' : '') + fmtNum(n,2) + '%';
+const initials = name => String(name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+const escapeHTML = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const todayStr = () => new Date().toISOString().slice(0,10);
+
+/* ============ I18N ============ */
+const I18N = {
+en:{menu:'MENU',navDashboard:'Dashboard',navMarkets:'Markets',navPortfolio:'Portfolio',navPeople:'People',navSettings:'Settings',buy:'Buy',sell:'Sell',verify:'Verify',cancel:'Cancel',tradeNote:'Paper trading · Virtual funds',
+heroBadge:'LIVE · TADAWUL + NYSE + NASDAQ',heroTitle:'Invest in what<br><span class="grad-text">moves the world.</span>',heroSub:'Real-time prices across 16,000+ assets, zero-commission execution, and bank-grade security — all in one terminal.',statVolumeV:'$2.4B+',statVolumeL:'Traded volume',statInvestorsV:'480K+',statInvestorsL:'Active investors',statMarketsV:'90+',statMarketsL:'Global markets',encNote:'256-bit encryption · Regulated · SIPC & Tadawul Capital member',
+welcomeBack:'Welcome back',welcomeSub:'Sign in to access your portfolio and trade live markets.',createAccount:'Create your account',createSub:'Start with $0 in virtual funds. Verified in under a minute.',tabSignIn:'Sign In',tabSignUp:'Sign Up',fullName:'Full name',username:'Username',email:'Email address',password:'Password',confirmPassword:'Confirm password',rememberMe:'Remember me',forgot:'Forgot password?',signInBtn:'Sign In Securely',signUpBtn:'Create Account',terms:'I agree to the Terms of Service and Privacy Policy',orContinue:'or',demoBtn:'Use demo account',demoNote:'demo@sahm.io · demo123',copyTerms:'Protected by 256-bit TLS encryption. SAHM does not custody user funds — virtual trading environment.',rights:'© 2025 SAHM Financial Inc. All rights reserved.',
+navProfile:'View settings',signOut:'Sign out',portfolioValue:'Portfolio Value',dayPL:"Today's P/L",cashBalance:'Cash Balance',totalPL:'Total P/L',buyingPower:'Available buying power',watchlist:'My Watchlist',viewAll:'View all',topMovers:'Top Movers',recentTx:'Recent Transactions',perfTitle:'Portfolio Performance',
+allStocks:'All Stocks',searchStocks:'Search symbol or name…',placeOrder:'Place Order',marketOrder:'MARKET ORDER',qty:'Quantity',estPrice:'Est. price',subtotal:'Subtotal',commission:'Commission',estTotal:'Est. total',free:'FREE',reviewBuy:'Review Buy Order',reviewSell:'Review Sell Order',stockStats:'Key Statistics',open:'Open',high:'High',low:'Low',prevClose:'Prev. Close',volume:'Volume',mktCap:'Market Cap',sector:'Sector',high52:'52W Range',yourPosition:'Your Position',sharesHeld:'Shares',avgCost:'Avg. cost',mktValue:'Market value',unrealPL:'Unrealized P/L',noPosition:'No position in',noPositionSub:'Place your first order to build a position.',exploreMarkets:'Explore Markets',
+portTitle:'My Portfolio',totalValue:'Total Value',pfCash:'Cash',invested:'Invested',unreal:'Unrealized P/L',allocTitle:'Asset Allocation',holdingsTitle:'Holdings',noHoldings:'No open positions yet',startTrading:'Start trading',txHistory:'Transaction History',all:'All',buys:'Buys',sells:'Sells',exportCsv:'Export CSV',
+peopleTitle:'Discover Investors',peopleSub:'Search by username and explore public portfolios from the SAHM community.',searchPeoplePh:'Search by username or name…',follow:'Follow',following:'Following',followers:'Followers',ret30:'Return',since:'Since',noPeople:'No investors found for',
+settingsTitle:'Account Settings',tabProfile:'Profile',tabSecurity:'Security',tabPrefs:'Preferences',profileDesc:'How you appear across SAHM',changePhoto:'Change photo',fullNameL:'Full name',usernameL:'Username',usernameHint:'Lowercase letters, numbers, dots and underscores only',bioL:'Bio',bioPh:'Tell the community about your investing style…',emailL:'Email',verified:'Verified',saveChanges:'Save changes',securityDesc:'Keep your account fortress-safe',currentPw:'Current password',newPw:'New password',confirmNewPw:'Confirm new password',updatePw:'Update password',twoFA:'Two-Factor Authentication',twoFADesc:'Require a 6-digit one-time passcode at every sign-in',sessions:'Active Sessions',currentSession:'Current session',revoke:'Revoke',signOutOthers:'Sign out of other sessions',prefsDesc:'Language and notification preferences',languageL:'Language',langEnDesc:'English (US)',langArDesc:'Arabic',notifs:'Notifications',notifPrice:'Price alerts',notifPriceD:'Get notified on big moves in your watchlist',notifOrder:'Order fills',notifOrderD:'Confirmations when orders execute',notifWeekly:'Weekly digest',notifWeeklyD:'Your portfolio performance every Friday',dangerZone:'Danger Zone',resetDemo:'Reset demo data',resetDemoD:'Restore the original demo account and clear local changes',resetBtn:'Reset data',signOutAll:'Sign out everywhere',signOutAllD:'End all active sessions on every device',
+confirmOrder:'Confirm Order',ocShares:'Shares',ocPrice:'Est. price',ocSubtotal:'Subtotal',ocFee:'Commission',ocTotal:'Total',ocNote:'Market orders execute instantly at the best available price.',ocConfirm:'Confirm Order',orderFilled:'Order Executed',orderFilledMsg:'Your order filled at market price.',viewPortfolio:'View Portfolio',done:'Done',
+tWelcome:'Welcome to SAHM',tWelcomeBack:'Welcome back',tSignedOut:'Signed out',tOrderFilled:'Order filled',tSaved:'Profile updated',tPhoto:'Profile photo updated',tPwUpdated:'Password updated',t2faOn:'Two-factor authentication enabled',t2faOff:'Two-factor authentication disabled',tReset:'Demo data restored',tSignOutAll:'Signed out of all sessions',tCodeSent:'Verification code sent to your email',tWrongCode:'Incorrect code — please try again',tInsufCash:'Insufficient buying power',tInsufShares:'Not enough shares to sell',tInvalidQty:'Enter a valid quantity',tNotifs:'Notification preferences saved',tResetSent:'Password reset link sent to your email',
+cmResetTitle:'Reset demo data?',cmResetMsg:'This clears all locally saved accounts, settings and portfolio changes, then reloads the demo.',cmReset:'Reset everything',
+pwWeak:'Weak',pwFair:'Fair',pwGood:'Good',pwStrong:'Strong',goodMorning:'Good morning',goodAfternoon:'Good afternoon',goodEvening:'Good evening'},
+ar:{menu:'القائمة',navDashboard:'لوحة المعلومات',navMarkets:'الأسواق',navPortfolio:'المحفظة',navPeople:'المستثمرون',navSettings:'الإعدادات',buy:'شراء',sell:'بيع',verify:'تحقق',cancel:'إلغاء',tradeNote:'تداول افتراضي · أموال غير حقيقية',
+heroBadge:'مباشر · تداول + NYSE + ناسداك',heroTitle:'استثمر في ما<br><span class="grad-text">يحرّك العالم.</span>',heroSub:'أسعار لحظية لأكثر من 16,000 أصل، تنفيذ بدون عمولات، وأمان بمستوى البنوك — كل ذلك في منصة واحدة.',statVolumeV:'+$2.4B',statVolumeL:'حجم التداول',statInvestorsV:'+480K',statInvestorsL:'مستثمر نشط',statMarketsV:'+90',statMarketsL:'سوقاً عالمياً',encNote:'تشفير 256 بت · جهة منظمة · عضوية سيبك وتداول',
+welcomeBack:'أهلاً بعودتك',welcomeSub:'سجّل الدخول للوصول إلى محفظتك والتداول في الأسواق الحية.',createAccount:'أنشئ حسابك',createSub:'ابدأ برصيد افتراضي $100,000. توثيق في أقل من دقيقة.',tabSignIn:'تسجيل الدخول',tabSignUp:'إنشاء حساب',fullName:'الاسم الكامل',username:'اسم المستخدم',email:'البريد الإلكتروني',password:'كلمة المرور',confirmPassword:'تأكيد كلمة المرور',rememberMe:'تذكرني',forgot:'نسيت كلمة المرور؟',signInBtn:'دخول آمن',signUpBtn:'إنشاء الحساب',terms:'أوافق على شروط الخدمة وسياسة الخصوصية',orContinue:'أو',demoBtn:'استخدام الحساب التجريبي',demoNote:'demo@sahm.io · demo123',copyTerms:'محمي بتشفير TLS بمستوى 256 بت. بيئة تداول افتراضية — لا أموال حقيقية معرّضة للخطر.',rights:'© 2025 سهم للخدمات المالية. جميع الحقوق محفوظة.',
+navProfile:'الإعدادات',signOut:'تسجيل الخروج',portfolioValue:'قيمة المحفظة',dayPL:'ربح/خسارة اليوم',cashBalance:'الرصيد النقدي',totalPL:'الربح/الخسارة الكلية',buyingPower:'القوة الشرائية المتاحة',watchlist:'قائمة المتابعة',viewAll:'عرض الكل',topMovers:'الأكثر تحركاً',recentTx:'آخر العمليات',perfTitle:'أداء المحفظة',
+allStocks:'جميع الأسهم',searchStocks:'ابحث عن رمز أو اسم…',placeOrder:'تنفيذ أمر',marketOrder:'أمر سوق',qty:'الكمية',estPrice:'السعر التقديري',subtotal:'المجموع الفرعي',commission:'العمولة',estTotal:'الإجمالي التقديري',free:'مجاني',reviewBuy:'مراجعة أمر الشراء',reviewSell:'مراجعة أمر البيع',stockStats:'إحصائيات رئيسية',open:'الافتتاح',high:'الأعلى',low:'الأدنى',prevClose:'الإغلاق السابق',volume:'حجم التداول',mktCap:'القيمة السوقية',sector:'القطاع',high52:'نطاق 52 أسبوع',yourPosition:'مركزك',sharesHeld:'عدد الأسهم',avgCost:'متوسط التكلفة',mktValue:'القيمة السوقية',unrealPL:'ربح/خسارة غير محققة',noPosition:'لا يوجد مركز في',noPositionSub:'نفّذ أول أمر لك لبناء مركزك.',exploreMarkets:'استكشف الأسواق',
+portTitle:'محفظتي',totalValue:'القيمة الكلية',pfCash:'النقدية',invested:'المستثمَر',unreal:'ربح/خسارة غير محققة',allocTitle:'توزيع الأصول',holdingsTitle:'المراكز المفتوحة',noHoldings:'لا توجد مراكز مفتوحة بعد',startTrading:'ابدأ التداول',txHistory:'سجل العمليات',all:'الكل',buys:'شراء',sells:'بيع',exportCsv:'تصدير CSV',
+peopleTitle:'اكتشف المستثمرين',peopleSub:'ابحث باسم المستخدم واستكشف محافظ المجتمع العلنية على سهم.',searchPeoplePh:'ابحث باسم المستخدم أو الاسم…',follow:'متابعة',following:'تتابعه',followers:'متابِع',ret30:'العائد',since:'منذ',noPeople:'لا يوجد مستثمرون مطابقون لـ',
+settingsTitle:'إعدادات الحساب',tabProfile:'الملف الشخصي',tabSecurity:'الأمان',tabPrefs:'التفضيلات',profileDesc:'كيف تظهر للآخرين عبر سهم',changePhoto:'تغيير الصورة',fullNameL:'الاسم الكامل',usernameL:'اسم المستخدم',usernameHint:'أحرف لاتينية صغيرة وأرقام ونقاط وشرطات سفلية فقط',bioL:'نبذة تعريفية',bioPh:'أخبر المجتمع عن أسلوبك في الاستثمار…',emailL:'البريد الإلكتروني',verified:'موثّق',saveChanges:'حفظ التغييرات',securityDesc:'حافظ على حسابك آمناً تماماً',currentPw:'كلمة المرور الحالية',newPw:'كلمة المرور الجديدة',confirmNewPw:'تأكيد كلمة المرور الجديدة',updatePw:'تحديث كلمة المرور',twoFA:'المصادقة الثنائية',twoFADesc:'طلب رمز تحقق لمرة واحدة عند كل تسجيل دخول',sessions:'الجلسات النشطة',currentSession:'الجلسة الحالية',revoke:'إنهاء',signOutOthers:'تسجيل الخروج من الجلسات الأخرى',prefsDesc:'اللغة وتفضيلات الإشعارات',languageL:'اللغة',langEnDesc:'English (US)',langArDesc:'العربية',notifs:'الإشعارات',notifPrice:'تنبيهات الأسعار',notifPriceD:'إشعار عند تحركات كبيرة في قائمة متابعتك',notifOrder:'تنفيذ الأوامر',notifOrderD:'تأكيد فور تنفيذ أوامرك',notifWeekly:'الملخص الأسبوعي',notifWeeklyD:'أداء محفظتك كل يوم جمعة',dangerZone:'منطقة الخطر',resetDemo:'استعادة بيانات العرض',resetDemoD:'استرجاع الحساب التجريبي الأصلي ومسح كل التغييرات المحلية',resetBtn:'استعادة البيانات',signOutAll:'تسجيل الخروج من كل الأجهزة',signOutAllD:'إنهاء جميع الجلسات النشطة على كل الأجهزة',
+confirmOrder:'تأكيد الأمر',ocShares:'عدد الأسهم',ocPrice:'السعر التقديري',ocSubtotal:'المجموع الفرعي',ocFee:'العمولة',ocTotal:'الإجمالي',ocNote:'أوامر السوق تُنفذ فوراً بأفضل سعر متاح.',ocConfirm:'تأكيد الأمر',orderFilled:'تم تنفيذ الأمر',orderFilledMsg:'نُفذ أمرك بسعر السوق.',viewPortfolio:'عرض المحفظة',done:'تم',
+tWelcome:'أهلاً بك في سهم',tWelcomeBack:'أهلاً بعودتك',tSignedOut:'تم تسجيل الخروج',tOrderFilled:'تم تنفيذ الأمر',tSaved:'تم تحديث الملف الشخصي',tPhoto:'تم تحديث صورة الملف الشخصي',tPwUpdated:'تم تحديث كلمة المرور',t2faOn:'تم تفعيل المصادقة الثنائية',t2faOff:'تم تعطيل المصادقة الثنائية',tReset:'تمت استعادة بيانات العرض',tSignOutAll:'تم تسجيل الخروج من جميع الجلسات',tCodeSent:'تم إرسال رمز التحقق إلى بريدك',tWrongCode:'الرمز غير صحيح — حاول مجدداً',tInsufCash:'الرصيد النقدي غير كافٍ',tInsufShares:'لا تملك أسهماً كافية للبيع',tInvalidQty:'أدخل كمية صالحة',tNotifs:'تم حفظ تفضيلات الإشعارات',tResetSent:'تم إرسال رابط استعادة كلمة المرور إلى بريدك',
+cmResetTitle:'استعادة بيانات العرض؟',cmResetMsg:'سيتم مسح جميع الحسابات المحفوظة محلياً والإعدادات وتغييرات المحفظة ثم إعادة التحميل.',cmReset:'استعادة كل شيء',
+pwWeak:'ضعيفة',pwFair:'مقبولة',pwGood:'جيدة',pwStrong:'قوية',goodMorning:'صباح الخير',goodAfternoon:'مساء الخير',goodEvening:'مساء الخير'}
+};
+const t = k => (I18N[state.lang] && I18N[state.lang][k]) || I18N.en[k] || k;
+
+/* ============ STATE ============ */
+const state = {
+  lang: localStorage.getItem('sahm_lang') || 'en',
+  users: [],
+  user: null,
+  stocks: [],
+  stockMap: {},
+  selectedSymbol: 'NVDA',
+  orderSide: 'buy',
+  chartType: 'area',
+  mktTF: '3M',
+  pfRange: '6M',
+  dashChart: null, dashSeries: null,
+  marketChart: null, marketArea: null, marketCandle: null,
+  authChart: null, authSeries: null,
+  ticking: false,
+  notifications: [
+    {id:'n1', tone:'up',    title:'NVDA is up 4.2% today', sub:'Your position gained an estimated $5,880', time:'2m'},
+    {id:'n2', tone:'check', title:'Order filled',          sub:'Bought 25 × AAPL @ $171.20 — filled instantly', time:'1h'},
+    {id:'n3', tone:'gold',  title:'Dividend received',     sub:'AAPL paid $6.25 into your cash balance', time:'1d'}
+  ],
+  sessions: [
+    {id:'s1', icon:'laptop', device:'MacBook Pro 16"', meta:'Chrome 131 · macOS · Riyadh, SA', time:'Active now', current:true},
+    {id:'s2', icon:'phone',  device:'iPhone 15 Pro',   meta:'SAHM App · iOS · Jeddah, SA',     time:'2 hours ago', current:false}
+  ],
+  peopleQuery: '',
+  txFilter: 'all'
+};
+
+const SEED_PEOPLE = [
+  {id:'p1', name:'Ahmed Al-Harbi', handle:'ahmed_alharbi', bio:'Value investor · Riyadh. Hunting quality at a fair price since 2019.', ret:24.6, followers:1284, verified:true,  img:12, joined:2021, holdings:{'2222':300,'1120':120,'AAPL':30}},
+  {id:'p2', name:'Sara Qassim',    handle:'sara_qassim',   bio:'Growth & momentum tech stocks. Semiconductors are eating the world.',  ret:31.2, followers:2311, verified:true,  img:47, joined:2020, holdings:{'NVDA':60,'MSFT':25,'AMD':40}},
+  {id:'p3', name:'Omar Nasser',    handle:'omar_nasser',   bio:'Dividend income focus. Cash flow is king. Ex-banker turned investor.', ret:12.8, followers:847,  verified:false, img:13, joined:2022, holdings:{'JPM':80,'V':40,'7010':150}},
+  {id:'p4', name:'Layla Hassan',   handle:'layla_hassan',  bio:'Swing trader · CFP®. Entries, exits and strict risk management.',      ret:18.4, followers:1542, verified:true,  img:45, joined:2021, holdings:{'TSLA':35,'AMZN':28,'GOOGL':22}},
+  {id:'p5', name:'Khalid Mansour', handle:'khalid_m',      bio:'Quant-flavored macro. Models over feelings.',                          ret:27.9, followers:1963, verified:true,  img:59, joined:2019, holdings:{'NVDA':30,'META':20,'2010':200}},
+  {id:'p6', name:'Nora Abdullah',  handle:'nora_abdullah', bio:'Long-term, boring, compounding. Buy great, hold longer.',              ret:9.6,  followers:654,  verified:false, img:32, joined:2023, holdings:{'MSFT':40,'DIS':100,'AAPL':25}},
+  {id:'p7', name:'Fahad Salem',    handle:'fahad_salem',   bio:'Energy & financials specialist. Aramco bull since the IPO.',           ret:15.3, followers:1120, verified:false, img:53, joined:2020, holdings:{'2222':500,'JPM':45}},
+  {id:'p8', name:'Dana Youssef',   handle:'dana_y',        bio:'Volatility & asymmetric bets. Small size, big convexity.',             ret:21.7, followers:1744, verified:true,  img:25, joined:2022, holdings:{'TSLA':20,'AMD':55,'NFLX':10}}
+];
+
+/* ============ STOCK UNIVERSE ============ */
+const STOCK_DEFS = [
+  {symbol:'NVDA', name:'NVIDIA Corporation', nameAr:'إنفيديا',        sector:'Technology', sectorAr:'تقنية',          currency:'USD', exchange:'NASDAQ', price:875.42, seed:101, cap:'$2.16T', vol:42100000},
+  {symbol:'AAPL', name:'Apple Inc.',         nameAr:'آبل',            sector:'Technology', sectorAr:'تقنية',          currency:'USD', exchange:'NASDAQ', price:178.42, seed:102, cap:'$2.76T', vol:52300000},
+  {symbol:'MSFT', name:'Microsoft Corporation',nameAr:'مايكروسوفت',    sector:'Technology', sectorAr:'تقنية',          currency:'USD', exchange:'NASDAQ', price:415.31, seed:103, cap:'$3.09T', vol:20100000},
+  {symbol:'GOOGL',name:'Alphabet Inc.',      nameAr:'ألفابت (جوجل)',  sector:'Communication', sectorAr:'اتصالات',      currency:'USD', exchange:'NASDAQ', price:155.74, seed:104, cap:'$1.92T', vol:24600000},
+  {symbol:'AMZN', name:'Amazon.com Inc.',    nameAr:'أمازون',         sector:'Consumer',   sectorAr:'استهلاكية',      currency:'USD', exchange:'NASDAQ', price:178.75, seed:105, cap:'$1.84T', vol:38200000},
+  {symbol:'META', name:'Meta Platforms Inc.',nameAr:'ميتا',           sector:'Communication', sectorAr:'اتصالات',      currency:'USD', exchange:'NASDAQ', price:505.09, seed:106, cap:'$1.28T', vol:12700000},
+  {symbol:'TSLA', name:'Tesla Inc.',         nameAr:'تسلا',           sector:'Automotive', sectorAr:'سيارات',         currency:'USD', exchange:'NASDAQ', price:248.48, seed:107, cap:'$790B',  vol:88400000},
+  {symbol:'AMD',  name:'Advanced Micro Devices',nameAr:'إيه إم دي',   sector:'Technology', sectorAr:'تقنية',          currency:'USD', exchange:'NASDAQ', price:190.31, seed:108, cap:'$307B',  vol:51200000},
+  {symbol:'NFLX', name:'Netflix Inc.',       nameAr:'نتفليكس',        sector:'Entertainment', sectorAr:'ترفيه',        currency:'USD', exchange:'NASDAQ', price:628.93, seed:109, cap:'$270B',  vol:3200000},
+  {symbol:'JPM',  name:'JPMorgan Chase & Co.',nameAr:'جي بي مورغان',  sector:'Financials', sectorAr:'مالية',          currency:'USD', exchange:'NYSE',   price:198.71, seed:110, cap:'$572B',  vol:9100000},
+  {symbol:'V',    name:'Visa Inc.',          nameAr:'فيزا',           sector:'Financials', sectorAr:'مالية',          currency:'USD', exchange:'NYSE',   price:276.83, seed:111, cap:'$556B',  vol:6300000},
+  {symbol:'DIS',  name:'The Walt Disney Co.',nameAr:'ديزني',          sector:'Entertainment', sectorAr:'ترفيه',        currency:'USD', exchange:'NYSE',   price:112.89, seed:112, cap:'$206B',  vol:10500000},
+  {symbol:'2222', name:'Saudi Aramco',       nameAr:'أرامكو السعودية',sector:'Energy',     sectorAr:'طاقة',           currency:'SAR', exchange:'Tadawul',price:31.45,  seed:113, cap:'$1.81T', vol:8400000},
+  {symbol:'1120', name:'Al Rajhi Bank',      nameAr:'مصرف الراجحي',   sector:'Financials', sectorAr:'بنوك',           currency:'SAR', exchange:'Tadawul',price:98.30,  seed:114, cap:'$104B',  vol:5200000},
+  {symbol:'7010', name:'stc Group',          nameAr:'إس تي سي',       sector:'Telecom',    sectorAr:'اتصالات',        currency:'SAR', exchange:'Tadawul',price:43.12,  seed:115, cap:'$64B',   vol:7100000},
+  {symbol:'2010', name:'SABIC',              nameAr:'سابك',           sector:'Petrochemicals', sectorAr:'بتروكيماويات', currency:'SAR', exchange:'Tadawul',price:28.94, seed:116, cap:'$28B',   vol:4800000}
+];
+const SYMBOL_COLORS = {NVDA:'#8be019',AAPL:'#a8b6c8',MSFT:'#00a4ef',GOOGL:'#4285f4',AMZN:'#ff9900',META:'#4d9fff',TSLA:'#fb7185',AMD:'#f87171',NFLX:'#ff3d47',JPM:'#c8a468',V:'#8f9bff',DIS:'#60a5fa','2222':'#22c55e','1120':'#38bdf8','7010':'#a78bfa','2010':'#f87171'};
+
+function genStock(def){
+  const s = Object.assign({dayOpen:0,dayHigh:0,dayLow:0,change:0,prevClose:0,high52:0,low52:0,lastDir:1}, def);
+  const rand = mulberry32(def.seed);
+  const closes = [def.price];
+  let p = def.price;
+  for (let i=0;i<260;i++){ const r=(rand()-0.5)*0.042 + 0.0011; p = p/(1+r); closes.unshift(p); }
+  const dates=[]; let d = new Date();
+  while (dates.length < closes.length){ if(d.getDay()!==0 && d.getDay()!==6){ dates.unshift(d.toISOString().slice(0,10)); } d = new Date(d.getTime()-86400000); }
+  s.history = closes.map((c,i)=>{ const o = i?closes[i-1]:c*0.985; return {time:dates[i], open:o, high:Math.max(o,c)*(1+rand()*0.013), low:Math.min(o,c)*(1-rand()*0.013), close:c, value:c}; });
+  s.prevClose = closes[closes.length-2];
+  s.dayOpen = s.prevClose*(1+(rand()-0.5)*0.012);
+  s.dayHigh = Math.max(s.dayOpen, s.price)*1.004;
+  s.dayLow  = Math.min(s.dayOpen, s.price)*0.996;
+  s.change  = (s.price - s.prevClose)/s.prevClose*100;
+  let hi=0, lo=Infinity; closes.forEach(c=>{ if(c>hi)hi=c; if(c<lo)lo=c; });
+  s.high52 = hi*1.02; s.low52 = lo*0.98;
+  return s;
+}
+state.stocks = STOCK_DEFS.map(genStock);
+state.stockMap = {}; state.stocks.forEach(s=>state.stockMap[s.symbol]=s);
+const getStock = sym => state.stockMap[sym];
+const stockName = s => state.lang==='ar' && s.nameAr ? s.nameAr : s.name;
+const sectorName = s => state.lang==='ar' && s.sectorAr ? s.sectorAr : s.sector;
+
+/* ============ USERS / PERSISTENCE ============ */
+function demoUser(){
+  const now = Date.now();
+  return {
+    id:'u_demo', name:'Alex Rivera', username:'alex_rivera', email:'demo@sahm.io', password:'demo123',
+    bio:'Tech-focused long-term investor. Semiconductors & compounders. Not financial advice.',
+    avatar:null, twoFA:false, verified:true, joined:2023, followers:214, following:['p1','p3'], watchlist:['NVDA','TSLA','AAPL','2222'],
+    notif:{price:true, order:true, weekly:false},
+    currency:'USD',
+    portfolio:{ cash:0, holdings:{}, transactions:[] }
+  };
+}
+function loadUsers(){
+  let users=null;
+  try{ users = JSON.parse(localStorage.getItem('sahm_users')||'null'); }catch(e){ users=null; }
+  if(!Array.isArray(users) || !users.length){ users=[demoUser()]; localStorage.setItem('sahm_users', JSON.stringify(users)); }
+  if(!users.find(u=>u.id==='u_demo')){ users.push(demoUser()); localStorage.setItem('sahm_users', JSON.stringify(users)); }
+  state.users = users;
+}
+function saveUsers(){ try{ localStorage.setItem('sahm_users', JSON.stringify(state.users)); }catch(e){ console.warn('storage full'); } }
+
+/* ============ PORTFOLIO MATH ============ */
+function holdingUSDValue(h, s){ return h.shares * s.price * (s.currency==='SAR' ? 1/SAR_PER_USD : 1); }
+function portfolioSummary(){
+  const p = state.user ? state.user.portfolio : {cash:0,holdings:{}};
+  let invested=0, marketValue=0, dayPL=0, costBasis=0;
+  for (const sym in p.holdings){
+    const h=p.holdings[sym], s=getStock(sym); if(!s) continue;
+    const fx = s.currency==='SAR' ? 1/SAR_PER_USD : 1;
+    marketValue += h.shares*s.price*fx;
+    costBasis   += h.shares*h.avgCost*fx;
+    invested    += h.shares*h.avgCost*fx;
+    dayPL       += h.shares*(s.price - s.prevClose)*fx;
+  }
+  const cash = p.cash||0, total = cash + marketValue, totalPL = marketValue - costBasis;
+  const totalPLPct = costBasis>0 ? totalPL/costBasis*100 : 0;
+  const dayBase = total - dayPL, dayPLPct = dayBase>0 ? dayPL/dayBase*100 : 0;
+  const investedPct = total>0 ? marketValue/total*100 : 0;
+  return {cash, invested, marketValue, costBasis, total, totalPL, totalPLPct, dayPL, dayPLPct, investedPct};
+}
+function userReturnPct(u){
+  let mv=0, cb=0;
+  for (const sym in (u.portfolio&&u.portfolio.holdings||{})){
+    const h=u.portfolio.holdings[sym], s=getStock(sym); if(!s) continue;
+    const fx = s.currency==='SAR'?1/SAR_PER_USD:1;
+    mv += h.shares*s.price*fx; cb += h.shares*h.avgCost*fx;
+  }
+  return cb>0 ? (mv-cb)/cb*100 : 0;
+}
+const pxCache = {};
+
+/* ============ TOASTS ============ */
+const TOAST_ICONS = {
+  success:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+  error:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fb8a93" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+  info:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+  warning:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line></svg>'
+};
+function toast(type, title, msg, duration=4200){
+  const el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML='<div class="mt-0.5 shrink-0">'+TOAST_ICONS[type]+'</div><div class="min-w-0 flex-1"><div class="text-[12px] font-bold text-slate-100">'+escapeHTML(title)+'</div>'+(msg?'<div class="text-[11px] text-slate-400 mt-0.5 leading-snug break-words">'+escapeHTML(msg)+'</div>':'')+'</div><button class="text-slate-500 hover:text-slate-200 transition-colors shrink-0" aria-label="Dismiss"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>';
+  el.querySelector('button').addEventListener('click', ()=>dismissToast(el));
+  $('#toastWrap').appendChild(el);
+  setTimeout(()=>dismissToast(el), duration);
+}
+function dismissToast(el){ if(!el||el.classList.contains('leaving'))return; el.classList.add('leaving'); setTimeout(()=>el.remove(),320); }
+
+/* ============ MODALS ============ */
+function openModal(id){ $('#'+id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ $('#'+id).classList.remove('open'); if(!$('.modal-overlay.open')) document.body.style.overflow=''; }
+$$('.modal-overlay').forEach(ov=>ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'), document.body.style.overflow=''; }));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $$('.modal-overlay.open').forEach(m=>m.classList.remove('open')); document.body.style.overflow=''; } });
+
+let confirmCallback = null;
+function openConfirm(title, msg, label, onConfirm){
+  $('#cmTitle').textContent=title; $('#cmMsg').textContent=msg; $('#cmConfirmBtn').textContent=label;
+  confirmCallback = onConfirm; openModal('confirmModal');
+}
+$('#cmConfirmBtn').addEventListener('click', ()=>{ closeModal('confirmModal'); if(confirmCallback) confirmCallback(); confirmCallback=null; });
+$('#cmCancelBtn').addEventListener('click', ()=>closeModal('confirmModal'));
+
+/* ============ EMAILJS OTP CONTROLLER ============ */
+/* Configure these three values from your EmailJS dashboard before deployment. */
+const EMAILJS_CONFIG = {
+  publicKey: '6ZB0r5_GXq1-tz0gH',
+  serviceId: 'service_4skmxvd',
+  templateId: 'template_tlg4ire'
+};
+if (window.emailjs && EMAILJS_CONFIG.publicKey !== 'YOUR_EMAILJS_PUBLIC_KEY') {
+  emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+}
+const otpState = { code:null, email:null, onSuccess:null, timer:null, cooldown:30, sending:false };
+const otpInputs = () => $$('.otp-input');
+
+async function sendOtpEmail(email, code) {
+  if (!window.emailjs || Object.values(EMAILJS_CONFIG).some(v=>String(v).startsWith('YOUR_EMAILJS_'))) {
+    throw new Error('EmailJS is not configured. Add your EmailJS public key, service ID, and OTP template ID in index.html.');
+  }
+  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+    to_email: email,
+    email: email,
+    otp_code: code,
+    passcode: code,
+    app_name: 'SAHM',
+    expires_in: '10 minutes'
+  });
+}
+async function openOtp({title, subtitle, email, onSuccess}){
+  otpState.email = email;
+  otpState.onSuccess = onSuccess || null;
+  otpState.code = String(Math.floor(100000 + Math.random()*900000));
+  $('#otpTitle').textContent = title;
+  $('#otpSubtitle').textContent = subtitle;
+  $('#otpError').classList.add('hidden');
+  $('#otpHint').textContent = state.lang==='ar' ? 'تحقق من بريدك الإلكتروني للحصول على رمز التحقق.' : 'Check your inbox for the 6-digit verification code.';
+  otpInputs().forEach(i=>{ i.value=''; i.classList.remove('filled','error','success'); });
+  $('#otpVerifyBtn').disabled = true;
+  $('#otpResendBtn').disabled = true;
+  openModal('otpModal');
+  try {
+    await sendOtpEmail(email, otpState.code);
+    $('#otpVerifyBtn').disabled = false;
+    startOtpCooldown(30);
+    setTimeout(()=>otpInputs()[0].focus(), 120);
+    toast('success', t('tCodeSent'), email);
+  } catch(err) {
+    otpState.code = null;
+    $('#otpError').textContent = err.message || 'Could not send the verification email. Check EmailJS configuration.';
+    $('#otpError').classList.remove('hidden');
+    $('#otpResendBtn').classList.remove('hidden');
+    $('#otpTimerWrap').classList.add('hidden');
+    toast('error', 'Email verification failed', err.message || 'Check EmailJS settings');
+  }
+}
+function startOtpCooldown(sec){
+  clearInterval(otpState.timer);
+  otpState.cooldown = sec;
+  const tick = () => {
+    const n=otpState.cooldown;
+    if(n<=0){ clearInterval(otpState.timer); $('#otpTimerWrap').classList.add('hidden'); $('#otpResendBtn').classList.remove('hidden'); return; }
+    $('#otpTimerWrap').classList.remove('hidden'); $('#otpResendBtn').classList.add('hidden');
+    $('#otpTimerText').textContent='0:'+String(n).padStart(2,'0'); otpState.cooldown--;
+  };
+  tick(); otpState.timer=setInterval(tick,1000);
+}
+function otpValue(){ return otpInputs().map(i=>i.value).join(''); }
+function otpFail(){
+  otpInputs().forEach(i=>i.classList.add('error'));
+  $('#otpError').textContent=t('tWrongCode'); $('#otpError').classList.remove('hidden');
+  setTimeout(()=>{ otpInputs().forEach(i=>{i.value='';i.classList.remove('error','filled');}); otpInputs()[0].focus(); },650);
+}
+function otpSucceed(){
+  otpInputs().forEach(i=>i.classList.add('success'));
+  setTimeout(()=>{ closeModal('otpModal'); if(otpState.onSuccess) otpState.onSuccess(); otpState.onSuccess=null; otpState.code=null; },550);
+}
+function otpVerify(){
+  const v=otpValue();
+  if(v.length!==6){ $('#otpError').textContent='Enter all 6 digits'; $('#otpError').classList.remove('hidden'); return; }
+  if(v===otpState.code) otpSucceed(); else otpFail();
+}
+otpInputs().forEach((input,idx,arr)=>{
+  input.addEventListener('input',e=>{const v=e.target.value.replace(/\\D/g,'').slice(-1);e.target.value=v;e.target.classList.toggle('filled',!!v);$('#otpError').classList.add('hidden');if(v&&idx<arr.length-1)arr[idx+1].focus();if(otpValue().length===6)setTimeout(otpVerify,120);});
+  input.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&idx>0){arr[idx-1].focus();arr[idx-1].value='';arr[idx-1].classList.remove('filled');}if(e.key==='ArrowLeft'&&idx>0)arr[idx-1].focus();if(e.key==='ArrowRight'&&idx<arr.length-1)arr[idx+1].focus();});
+  input.addEventListener('paste',e=>{e.preventDefault();const data=(e.clipboardData||window.clipboardData).getData('text').replace(/\\D/g,'').slice(0,6);if(!data)return;arr.forEach((inp,i)=>{inp.value=data[i]||'';inp.classList.toggle('filled',!!data[i]);});arr[Math.min(data.length,arr.length-1)].focus();if(data.length===6)setTimeout(otpVerify,120);});
+});
+$('#otpVerifyBtn').addEventListener('click',otpVerify);
+$('#otpCancelBtn').addEventListener('click',()=>{clearInterval(otpState.timer);closeModal('otpModal');});
+$('#otpResendBtn').addEventListener('click',async()=>{
+  if(!otpState.email)return;
+  const code=String(Math.floor(100000+Math.random()*900000)); otpState.code=code;
+  otpInputs().forEach(i=>{i.value='';i.classList.remove('filled','error','success');});
+  $('#otpError').classList.add('hidden'); $('#otpResendBtn').disabled=true;
+  try{await sendOtpEmail(otpState.email,code);startOtpCooldown(30);toast('success',t('tCodeSent'),otpState.email);otpInputs()[0].focus();}
+  catch(err){otpState.code=null;$('#otpError').textContent=err.message||'Could not resend code';$('#otpError').classList.remove('hidden');$('#otpResendBtn').disabled=false;}
+  finally{$('#otpResendBtn').disabled=false;}
+});
+
+/* ============ LANGUAGE ============ */
+function applyLang(lang){
+  state.lang = lang;
+  localStorage.setItem('sahm_lang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang==='ar' ? 'rtl' : 'ltr';
+  const d = I18N[lang];
+  $$('[data-i18n]').forEach(el=>{ const v=d[el.dataset.i18n]; if(v!=null) el.textContent=v; });
+  $$('[data-i18n-html]').forEach(el=>{ const v=d[el.dataset.i18nHtml]; if(v!=null) el.innerHTML=v; });
+  $$('[data-i18n-ph]').forEach(el=>{ const v=d[el.dataset.i18nPh]; if(v!=null) el.placeholder=v; });
+  $('#langToggleEn').className = 'px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all ' + (lang==='en' ? 'text-acc bg-emerald-400/10' : 'text-slate-500');
+  $('#langToggleAr').className = 'px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all ' + (lang==='ar' ? 'text-acc bg-emerald-400/10' : 'text-slate-500');
+  $('#langToggleAr').style.fontFamily = "'IBM Plex Sans Arabic'";
+  $('#langCardEn').classList.toggle('active', lang==='en');
+  $('#langCardAr').classList.toggle('active', lang==='ar');
+  if (state.user){ renderDynamicText(); renderWatchlist(); renderMarketsTable(); renderHoldings(); renderMovers(); renderRecentTx(); renderTxList(); renderPeople(); updateMarketHeader(); updateOrderQuote(); }
+}
+$('#langToggleEn').addEventListener('click', ()=>applyLang('en'));
+$('#langToggleAr').addEventListener('click', ()=>applyLang('ar'));
+$('#langCardEn').addEventListener('click', ()=>applyLang('en'));
+$('#langCardAr').addEventListener('click', ()=>applyLang('ar'));
+
+/* ============ AUTH ============ */
+const authError = (msg) => { const b=$('#authError'); if(!msg){ b.classList.add('hidden'); return; } $('#authErrorText').textContent=msg; b.classList.remove('hidden'); };
+
+$('#tabSignIn').addEventListener('click', ()=>{ $('#tabSignIn').classList.add('active'); $('#tabSignUp').classList.remove('active'); $('#formSignIn').classList.remove('hidden'); $('#formSignUp').classList.add('hidden'); authError(null); });
+$('#tabSignUp').addEventListener('click', ()=>{ $('#tabSignUp').classList.add('active'); $('#tabSignIn').classList.remove('active'); $('#formSignUp').classList.remove('hidden'); $('#formSignIn').classList.add('hidden'); authError(null); });
+
+$$('.pw-toggle').forEach(btn=>btn.addEventListener('click', ()=>{
+  const input = $('#'+btn.dataset.target);
+  input.type = input.type==='password' ? 'text' : 'password';
+  btn.querySelector('.eye-open').classList.toggle('hidden', input.type!=='password');
+  btn.querySelector('.eye-off').classList.toggle('hidden', input.type==='password');
+}));
+
+$('#demoFillBtn').addEventListener('click', ()=>{
+  $('#siEmail').value='demo@sahm.io'; $('#siPassword').value='demo123';
+  authError(null);
+  toast('info', t('tCodeSent').split('—')[0] ? 'Demo account loaded' : 'Demo account loaded', 'demo@sahm.io · demo123');
+});
+$('#forgotBtn').addEventListener('click', ()=>{
+  const email = $('#siEmail').value.trim();
+  toast('info', state.lang==='ar'?'تم الإرسال':'Reset link sent', email ? (state.lang==='ar' ? 'أُرسل رابط الاستعادة إلى '+email : 'A password reset link was sent to '+email) : t('tResetSent'));
+});
+
+function pwScore(pw){
+  let s=0; if(pw.length>=8)s++; if(pw.length>=12)s++; if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++; if(/\d/.test(pw))s++; if(/[^A-Za-z0-9]/.test(pw))s++;
+  return Math.min(4, s);
+}
+const PW_LABELS=[['',0],['pwWeak',25,'#ea3943'],['pwFair',50,'#f59e0b'],['pwGood',75,'#38bdf8'],['pwStrong',100,'#16c784']];
+function renderStrength(barEl, textEl, pw){
+  const s = pwScore(pw);
+  if(!pw){ barEl.style.width='0%'; textEl.textContent='—'; textEl.style.color='#64748b'; return; }
+  const cfg = PW_LABELS[s] || PW_LABELS[1];
+  barEl.style.width = cfg[1]+'%'; barEl.style.background = cfg[2];
+  textEl.textContent = t(cfg[0]); textEl.style.color = cfg[2];
+}
+$('#suPassword').addEventListener('input', e=>renderStrength($('#pwStrengthBar'), $('#pwStrengthText'), e.target.value));
+$('#newPw').addEventListener('input', e=>renderStrength($('#pwBar2'), $('#pwText2'), e.target.value));
+
+const usernameRe = /^[a-z0-9_.]{3,20}$/;
+function usernameTaken(handle, excludeId){
+  handle = handle.toLowerCase();
+  if (state.users.some(u=>u.username.toLowerCase()===handle && u.id!==excludeId)) return true;
+  if (SEED_PEOPLE.some(p=>p.handle.toLowerCase()===handle)) return true;
+  return false;
+}
+$('#suUsername').addEventListener('input', debounce(function(){
+  const v = this.value.trim().toLowerCase(), hint = $('#usernameHint');
+  if (!v){ hint.textContent = t('usernameHint'); hint.className='text-[11px] min-h-[1.1rem] mb-2.5 text-slate-600'; return; }
+  if (!usernameRe.test(v)){ hint.textContent = state.lang==='ar' ? 'صيغة غير صالحة (a-z، 0-9، _ .)' : 'Invalid format (a-z, 0-9, _ .)'; hint.className='text-[11px] min-h-[1.1rem] mb-2.5 text-rose-400'; return; }
+  if (usernameTaken(v)){ hint.textContent = state.lang==='ar' ? 'اسم المستخدم محجوز' : 'Username is taken'; hint.className='text-[11px] min-h-[1.1rem] mb-2.5 text-rose-400'; return; }
+  hint.textContent = state.lang==='ar' ? 'اسم المستخدم متاح' : 'Username available'; hint.className='text-[11px] min-h-[1.1rem] mb-2.5 text-emerald-400';
+}, 220));
+function debounce(fn, ms){ let h; return function(...a){ clearTimeout(h); h=setTimeout(()=>fn.apply(this,a), ms); }; }
+
+$('#formSignIn').addEventListener('submit', e=>{
+  e.preventDefault(); authError(null);
+  const email = $('#siEmail').value.trim().toLowerCase(), pw = $('#siPassword').value;
+  const user = state.users.find(u=>u.email.toLowerCase()===email);
+  if (!user || user.password !== pw){ authError(state.lang==='ar' ? 'البريد أو كلمة المرور غير صحيحة' : 'Incorrect email or password'); return; }
+  openOtp({ title: state.lang==='ar'?'المصادقة الثنائية':'Email verification', email:user.email, subtitle: state.lang==='ar'?'أدخل رمز التحقق المرسل إلى بريدك':'Enter the 6-digit one-time passcode sent to '+user.email, onSuccess: ()=>establishSession(user, true) });
+});
+$('#formSignUp').addEventListener('submit', e=>{
+  e.preventDefault(); authError(null);
+  const name=$('#suName').value.trim(), username=$('#suUsername').value.trim().toLowerCase(), email=$('#suEmail').value.trim().toLowerCase(), pw=$('#suPassword').value, pw2=$('#suConfirm').value;
+  if (name.length<3) return authError(state.lang==='ar'?'أدخل الاسم الكامل':'Please enter your full name');
+  if (!usernameRe.test(username)) return authError(state.lang==='ar'?'اسم مستخدم غير صالح':'Please choose a valid username');
+  if (usernameTaken(username)) return authError(state.lang==='ar'?'اسم المستخدم محجوز':'That username is taken');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return authError(state.lang==='ar'?'بريد إلكتروني غير صالح':'Please enter a valid email address');
+  if (state.users.some(u=>u.email.toLowerCase()===email)) return authError(state.lang==='ar'?'هذا البريد مسجل مسبقاً':'An account with this email already exists');
+  if (pw.length<8) return authError(state.lang==='ar'?'كلمة المرور 8 أحرف على الأقل':'Password must be at least 8 characters');
+  if (pw!==pw2) return authError(state.lang==='ar'?'كلمتا المرور غير متطابقتين':'Passwords do not match');
+  if (!$('#suTerms').checked) return authError(state.lang==='ar'?'يرجى الموافقة على الشروط':'Please accept the Terms of Service');
+  const newUser = { id:'u_'+Date.now(), name, username, email, password:pw, bio:'', avatar:null, twoFA:false, verified:true, joined:new Date().getFullYear(), followers:37, following:[], watchlist:['NVDA','AAPL'], notif:{price:true,order:true,weekly:false}, currency:'USD', portfolio:{ cash:0, holdings:{}, transactions:[] } };
+  state.users.push(newUser); saveUsers();
+  openOtp({ title: state.lang==='ar'?'وثّق بريدك الإلكتروني':'Verify your email', email, subtitle: (state.lang==='ar'?'أرسلنا رمز تحقق لمرة واحدة إلى ':'We sent a one-time passcode to ')+email, onSuccess: ()=>{
+    establishSession(newUser, false);
+    toast('success', t('tWelcome'), state.lang==='ar'?'تم إنشاء حسابك — رصيد ابتدائي $0':'Your account is ready — $0 starting balance');
+    if(window.confetti) confetti({particleCount:80,spread:80,origin:{y:.6},colors:['#34d399','#38bdf8','#fbbf24','#ffffff']});
+  }});
+});
+
+function establishSession(user, isReturning){
+  state.user = user;
+  const idx = state.users.findIndex(u=>u.id===user.id);
+  if (idx>=0) state.users[idx]=user; saveUsers();
+  localStorage.setItem('sahm_session', user.id);
+  $('#authScreen').classList.add('hidden');
+  const app=$('#appScreen'); app.classList.remove('hidden'); app.classList.add('flex');
+  buildApp();
+  toast('success', isReturning ? t('tWelcomeBack') : t('tWelcome'), user.name);
+}
+function signOut(all){
+  if (all){ state.notifications=[]; }
+  localStorage.removeItem('sahm_session');
+  state.user = null;
+  $('#appScreen').classList.add('hidden'); $('#appScreen').classList.remove('flex');
+  $('#authScreen').classList.remove('hidden');
+  toast('info', all ? t('tSignOutAll') : t('tSignedOut'));
+}
+$('#logoutBtn').addEventListener('click', ()=>{ $('#avatarDropdown').classList.add('hidden'); signOut(false); });
+$('#signOutAllBtn').addEventListener('click', ()=>signOut(true));
+
+/* ============ AVATARS ============ */
+function renderAvatars(){
+  const u = state.user; if(!u) return;
+  const ini = initials(u.name);
+  [['navAvatarInit','navAvatarImg'],['sideAvatarInit','sideAvatarImg'],['avatarInitials','avatarImg']].forEach(([iEl,imgEl])=>{
+    const i=$('#'+iEl), img=$('#'+imgEl);
+    i.textContent = ini;
+    if (u.avatar){ img.src=u.avatar; img.classList.remove('hidden'); } else { img.classList.add('hidden'); }
+  });
+  $('#navAvatarInit').textContent = ini; $('#sideAvatarInit').textContent = ini; $('#avatarInitials').textContent = ini;
+  $('#sideName').textContent = u.name; $('#sideUsername').textContent = '@'+u.username;
+  $('#dropName').textContent = u.name; $('#dropEmail').textContent = u.email; $('#headerUsername').textContent='@'+u.username;
+  $('#settingsNamePreview').textContent = u.name; $('#settingsHandlePreview').textContent = '@'+u.username;
+  $('#dashGreetingName').textContent = u.name.split(' ')[0];
+}
+function processAvatarFile(file){
+  if(!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const size=256, c=document.createElement('canvas'); c.width=size; c.height=size;
+      const ctx=c.getContext('2d');
+      const min=Math.min(img.width,img.height), sx=(img.width-min)/2, sy=(img.height-min)/2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      state.user.avatar = c.toDataURL('image/jpeg', 0.85);
+      saveUsers(); renderAvatars(); fillSettingsForm();
+      toast('success', t('tPhoto'));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+$('#uploadAvatarBtn').addEventListener('click', ()=>$('#avatarFile').click());
+$('#changePhotoBtn').addEventListener('click', ()=>$('#avatarFile').click());
+$('#avatarFile').addEventListener('change', e=>processAvatarFile(e.target.files[0]));
+
+/* ============ CHART THEME ============ */
+function baseChartOpts(){
+  return {
+    layout:{ background:{color:'transparent'}, textColor:'#7c8699', fontSize:10, fontFamily:"'JetBrains Mono', monospace" },
+    grid:{ vertLines:{color:'rgba(148,163,184,0.055)'}, horzLines:{color:'rgba(148,163,184,0.055)'} },
+    crosshair:{ mode:0, vertLine:{color:'rgba(52,211,153,.4)',labelBackgroundColor:'#10b981'}, horzLine:{color:'rgba(52,211,153,.4)',labelBackgroundColor:'#10b981'} },
+    rightPriceScale:{ borderColor:'rgba(148,163,184,0.15)' },
+    timeScale:{ borderColor:'rgba(148,163,184,0.15)', rightOffset:4, barSpacing:9 }
+  };
+}
+function sliceHistory(s, tf){
+  if (tf==='1D'){
+    const rand = mulberry32(s.seed+777), pts=[]; let p=s.prevClose;
+    const now = new Date(); now.setHours(9,30,0,0);
+    for(let i=0;i<=78;i++){
+      const drift=(s.price-s.prevClose)/78;
+      p = p + drift + (rand()-0.5)*s.prevClose*0.004;
+      if(i===78) p = s.price;
+      const tms = Math.floor((now.getTime()+i*5*60000)/1000);
+      pts.push({time:tms, value:+p.toFixed(2), open:+(p*(1-0.002)).toFixed(2), high:+(p*1.003).toFixed(2), low:+(p*0.997).toFixed(2), close:+p.toFixed(2)});
+    }
+    return pts;
+  }
+  const map={'1M':22,'3M':66,'6M':132,'1Y':9999};
+  return s.history.slice(-(map[tf]||66));
+}
+function buildMarketChart(){
+  const el = $('#marketChart'); if(!el || typeof LightweightCharts==='undefined') return;
+  if (state.marketChart){ try{ state.marketChart.remove(); }catch(e){} state.marketChart=null; }
+  const s = getStock(state.selectedSymbol);
+  const isUp = s.change >= 0;
+  const opts = baseChartOpts();
+  opts.width = el.clientWidth; opts.height = el.clientHeight;
+  opts.timeScale.timeVisible = state.mktTF==='1D';
+  opts.watermark = { visible:true, text:s.symbol, color:'rgba(148,163,184,0.07)', fontSize:54, fontFamily:'Inter', fontStyle:'800' };
+  const chart = LightweightCharts.createChart(el, opts);
+  const data = sliceHistory(s, state.mktTF);
+  if (state.chartType==='area'){
+    const col = isUp ? '#16c784' : '#ea3943';
+    state.marketArea = chart.addAreaSeries({ lineColor:col, lineWidth:2, topColor:isUp?'rgba(22,199,132,.32)':'rgba(234,57,67,.3)', bottomColor:'rgba(22,199,132,0)', priceFormat:{type:'price',precision:2,minMove:0.01} });
+    state.marketArea.setData(data.map(d=>({time:d.time, value:d.value})));
+    state.marketCandle = null;
+  } else {
+    state.marketCandle = chart.addCandlestickSeries({ upColor:'#16c784', downColor:'#ea3943', borderVisible:false, wickUpColor:'#16c784', wickDownColor:'#ea3943', priceFormat:{type:'price',precision:2,minMove:0.01} });
+    state.marketCandle.setData(data.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
+    state.marketArea = null;
+  }
+  chart.timeScale().fitContent();
+  state.marketChart = chart;
+}
+function genPortfolioCurve(total, range){
+  const days = {'1M':22,'3M':66,'6M':132,'1Y':252}[range]||132;
+  const rand = mulberry32(strHash((state.user?state.user.id:'u')+range));
+  const closes=[total]; let v=total;
+  for(let i=0;i<days;i++){ const r=(rand()-0.40)*0.022; v = Math.max(1000, v/(1+r)); closes.unshift(v); }
+  const dates=[]; let d=new Date();
+  while(dates.length<closes.length){ if(d.getDay()!==0&&d.getDay()!==6){ dates.unshift(d.toISOString().slice(0,10)); } d=new Date(d.getTime()-86400000); }
+  return closes.map((c,i)=>({time:dates[i], value:+c.toFixed(2)}));
+}
+function buildDashChart(){
+  const el = $('#dashChart'); if(!el || typeof LightweightCharts==='undefined') return;
+  if (state.dashChart){ try{ state.dashChart.remove(); }catch(e){} state.dashChart=null; }
+  const sum = portfolioSummary();
+  const opts = baseChartOpts();
+  opts.width=el.clientWidth; opts.height=el.clientHeight;
+  opts.timeScale.barSpacing=7;
+  const chart = LightweightCharts.createChart(el, opts);
+  state.dashSeries = chart.addAreaSeries({ lineColor:'#34d399', lineWidth:2, topColor:'rgba(52,211,153,.33)', bottomColor:'rgba(52,211,153,0)', priceFormat:{type:'price',precision:0,minMove:1} });
+  state.dashSeries.setData(genPortfolioCurve(Math.max(1000,sum.total), state.pfRange));
+  chart.timeScale().fitContent();
+  state.dashChart = chart;
+}
+function buildAuthChart(){
+  const el = $('#authChart'); if(!el || typeof LightweightCharts==='undefined') return;
+  const opts = baseChartOpts();
+  opts.width=el.clientWidth; opts.height=el.clientHeight;
+  opts.grid.vertLines.color='rgba(148,163,184,0.04)'; opts.grid.horzLines.color='rgba(148,163,184,0.04)';
+  opts.rightPriceScale.visible=false; opts.timeScale.visible=false; opts.crosshair.vertLine.visible=false; opts.crosshair.horzLine.visible=false;
+  const chart = LightweightCharts.createChart(el, opts);
+  const rand = mulberry32(20250214);
+  const data=[]; let v=182; let d=new Date(); d.setDate(d.getDate()-160);
+  const pts=[];
+  while(pts.length<170){ if(d.getDay()!==0&&d.getDay()!==6){ const r=(rand()-0.44)*0.026+0.0022; v=Math.max(60,v*(1+r)); pts.push({time:d.toISOString().slice(0,10), value:+v.toFixed(2), open:+(v*(1-rand()*0.012)).toFixed(2), high:+(v*(1+rand()*0.016)).toFixed(2), low:+(v*(1-rand()*0.016)).toFixed(2), close:+v.toFixed(2)}); } d=new Date(d.getTime()+86400000); }
+  state.authSeries = chart.addCandlestickSeries({ upColor:'rgba(52,211,153,.75)', downColor:'rgba(234,57,67,.6)', borderVisible:false, wickUpColor:'rgba(52,211,153,.5)', wickDownColor:'rgba(234,57,67,.45)' });
+  state.authSeries.setData(pts);
+  chart.timeScale().fitContent();
+  state.authChart = chart;
+}
+
+/* ============ SYMBOL ICONS / SPARKS ============ */
+function symbolIconHTML(sym, size){
+  size = size||36;
+  const c = SYMBOL_COLORS[sym]||'#34d399';
+  const label = sym.length<=4 ? sym.slice(0, sym[0]==='2' ? 2 : 2) : sym.slice(0,2);
+  return '<span class="rounded-xl inline-flex items-center justify-center font-extrabold shrink-0" style="width:'+size+'px;height:'+size+'px;background:'+c+'1f;color:'+c+';font-size:'+Math.round(size*0.34)+'px;border:1px solid '+c+'3d">'+label+'</span>';
+}
+function drawSpark(canvas, closes, positive){
+  const ctx=canvas.getContext('2d'), w=canvas.width, h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const data=closes.slice(-42), min=Math.min.apply(null,data), max=Math.max.apply(null,data), range=(max-min)||1;
+  ctx.beginPath();
+  data.forEach((v,i)=>{ const x=i/(data.length-1)*(w-4)+2, y=h-3-((v-min)/range)*(h-8); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.strokeStyle = positive?'#16c784':'#ea3943'; ctx.lineWidth=1.6; ctx.lineJoin='round'; ctx.stroke();
+  ctx.lineTo(w-2,h); ctx.lineTo(2,h); ctx.closePath();
+  const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0, positive?'rgba(22,199,132,.28)':'rgba(234,57,67,.28)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fill();
+}
+
+/* ============ RENDER · TICKER TAPE & INDICES ============ */
+const INDICES = [ {el:['idxSPXVal','idxSPXChg'], v:5187.32, chg:0.42}, {el:['idxTASIVal','idxTASIChg'], v:13420.55, chg:0.81}, {el:['idxNDXVal','idxNDXChg'], v:16274.94, chg:0.61} ];
+function buildTape(){
+  const html = state.stocks.map(s=>'<span class="tape-item" data-tape="'+s.symbol+'"><b class="text-slate-200 font-bold">'+s.symbol+'</b><span class="mono tape-px text-slate-100">'+fmtNum(s.price)+'</span><span class="mono tape-chg '+(s.change>=0?'chg-up':'chg-down')+'">'+fmtPct(s.change)+'</span></span>').join('');
+  $('#tapeInner').innerHTML = html + html;
+}
+function tickIndices(){
+  INDICES.forEach(ix=>{
+    const d=(Math.random()-0.5)*0.0012; ix.v*= (1+d); ix.chg += d*100;
+    const vEl=$('#'+ix.el[0]), cEl=$('#'+ix.el[1]);
+    if(vEl) vEl.textContent = fmtNum(ix.v);
+    if(cEl){ cEl.textContent = fmtPct(ix.chg); cEl.className='mono text-[10px] '+(ix.chg>=0?'chg-up':'chg-down'); }
+  });
+}
+
+/* ============ RENDER · DASHBOARD ============ */
+function renderDynamicText(){
+  const hr = new Date().getHours();
+  const greet = hr<12 ? t('goodMorning') : hr<17 ? t('goodAfternoon') : t('goodEvening');
+  $('#dashGreeting').textContent = greet;
+  const loc = state.lang==='ar'?'ar':'en-US';
+  $('#dashDate').textContent = new Date().toLocaleDateString(loc,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  $('#placeOrderLabel').textContent = state.orderSide==='buy' ? t('reviewBuy') : t('reviewSell');
+  renderAvatars();
+}
+function updateStatCards(){
+  const sum = portfolioSummary();
+  const isUp = sum.totalPL >= 0;
+  $('#statTotalValue').textContent = fmtMoney(sum.total);
+  const tc=$('#statTotalChange');
+  tc.textContent = (isUp?'+':'') + fmtMoney(Math.abs(sum.totalPL),'USD',2).replace('$','$') + ' (' + fmtPct(sum.totalPLPct) + ')';
+  if(!isUp) tc.textContent = '-' + fmtMoney(Math.abs(sum.totalPL)) + ' (' + fmtPct(sum.totalPLPct) + ')';
+  tc.className = 'mono text-[11px] font-semibold mt-1.5 ' + (isUp?'chg-up':'chg-down');
+  const dp=$('#statDayPL');
+  dp.textContent = (sum.dayPL>=0?'+':'-') + fmtMoney(Math.abs(sum.dayPL));
+  dp.className = 'mono text-lg sm:text-[1.35rem] font-bold mt-2 leading-none ' + (sum.dayPL>=0?'text-up':'text-down');
+  $('#statCash').textContent = fmtMoney(sum.cash);
+  $('#statTotalPL').textContent = (sum.totalPL>=0?'+':'-') + fmtMoney(Math.abs(sum.totalPL));
+  $('#statTotalPL').className = 'mono text-lg sm:text-[1.35rem] font-bold mt-2 leading-none ' + (isUp?'text-up':'text-down');
+  const tp=$('#statTotalPLPct'); tp.textContent = fmtPct(sum.totalPLPct) + ' all-time'; tp.className='mono text-[11px] font-semibold mt-1.5 '+(isUp?'chg-up':'chg-down');
+}
+function renderWatchlist(){
+  const u=state.user; if(!u) return;
+  const body=$('#watchlistBody'); const list=(u.watchlist||[]).map(getStock).filter(Boolean).slice(0,6);
+  $('#watchlistEmpty').classList.toggle('hidden', list.length>0);
+  body.innerHTML = list.map(s=>'<button class="w-full flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0 hover:bg-white/[.03] rounded-lg px-2 transition-colors text-start" data-goto-markets="'+s.symbol+'">'+symbolIconHTML(s.symbol,36)+'<span class="min-w-0"><span class="block text-[13px] font-bold text-slate-100">'+s.symbol+'</span><span class="block text-[10px] text-slate-500 truncate max-w-[110px]">'+escapeHTML(stockName(s))+'</span></span><canvas class="spark ms-auto hidden sm:block" width="86" height="34" data-spark="'+s.symbol+'"></canvas><span class="text-end w-[86px] shrink-0"><span class="block mono text-[12px] font-semibold text-slate-100" data-px="'+s.symbol+'">'+fmtMoney(s.price,s.currency)+'</span><span class="block mono text-[10px] font-semibold '+(s.change>=0?'chg-up':'chg-down')+'" data-chg="'+s.symbol+'">'+fmtPct(s.change)+'</span></span></button>').join('');
+  $$('canvas[data-spark]', body).forEach(c=>drawSpark(c, getStock(c.dataset.spark).history.map(h=>h.close), getStock(c.dataset.spark).change>=0));
+}
+function renderMovers(){
+  const movers=[...state.stocks].sort((a,b)=>Math.abs(b.change)-Math.abs(a.change)).slice(0,6);
+  $('#topMovers').innerHTML = movers.map(s=>{ const up=s.change>=0; return '<button class="w-full flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0 hover:bg-white/[.03] rounded-lg px-2 transition-colors text-start" data-goto-markets="'+s.symbol+'"><span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 '+(up?'text-up':'text-down')+'" style="background:'+(up?'rgba(22,199,132,.12)':'rgba(234,57,67,.12)')+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(up?'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>':'<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline>')+'</svg></span><span class="min-w-0"><span class="block text-[12px] font-bold text-slate-100">'+s.symbol+'</span><span class="block text-[10px] text-slate-500 truncate max-w-[130px]">'+escapeHTML(stockName(s))+'</span></span><span class="ms-auto mono text-[12px] font-bold '+(up?'chg-up':'chg-down')+'" data-chg="'+s.symbol+'">'+fmtPct(s.change)+'</span></button>'; }).join('');
+}
+function txRowHTML(tx){
+  const s=getStock(tx.symbol); const isBuy=tx.type==='buy', isDiv=tx.type==='div';
+  const icon = isDiv
+    ? '<span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(251,191,36,.12);color:#fbbf24"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>'
+    : isBuy
+      ? '<span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(22,199,132,.12);color:#34d399"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="7" x2="17" y2="17"></line><polyline points="17 7 17 17 7 17"></polyline></svg></span>'
+      : '<span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(234,57,67,.12);color:#fb8a93"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="17" x2="7" y2="7"></line><polyline points="7 17 7 7 17 7"></polyline></svg></span>';
+  const loc = state.lang==='ar'?'ar':'en-US';
+  const date = new Date(tx.ts).toLocaleDateString(loc,{month:'short',day:'numeric',year:'numeric'});
+  const label = isDiv ? (state.lang==='ar'?'توزيعات أرباح':'Dividend')+' · AAPL' : ((isBuy ? (state.lang==='ar'?'شراء ':'Bought ') : (state.lang==='ar'?'بيع ':'Sold ')) + fmtNum(tx.shares, tx.shares%1?2:0) + ' ' + tx.symbol);
+  const sub = isDiv ? date : date+' · @ '+fmtMoney(tx.price, tx.currency||'USD');
+  const amt = (isBuy?'-':'+')+fmtMoney(tx.total, tx.currency||'USD');
+  return '<div class="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">'+icon+'<div class="min-w-0"><div class="text-[12px] font-bold text-slate-100">'+label+'</div><div class="text-[10px] text-slate-500">'+sub+'</div></div><div class="ms-auto mono text-[12px] font-bold '+(isBuy?'text-slate-200':'text-up')+'">'+amt+'</div></div>';
+}
+function renderRecentTx(){
+  const txs=(state.user&&state.user.portfolio.transactions||[]).slice().sort((a,b)=>b.ts-a.ts).slice(0,5);
+  $('#recentTxList').innerHTML = txs.length ? txs.map(txRowHTML).join('') : '<p class="text-xs text-slate-500 py-6 text-center">No transactions yet.</p>';
+}
+
+/* ============ RENDER · MARKETS ============ */
+function renderMarketsTable(){
+  const q=($('#mktFilter').value||'').trim().toLowerCase();
+  const rows=state.stocks.filter(s=>!q || s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) || (s.nameAr||'').includes(q));
+  $('#stocksTableBody').innerHTML = rows.map(s=>'<tr class="trow cursor-pointer '+(s.symbol===state.selectedSymbol?'selected':'')+'" data-row-sym="'+s.symbol+'"><td class="py-2.5 px-3"><div class="flex items-center gap-2.5">'+symbolIconHTML(s.symbol,32)+'<div><div class="text-[12px] font-bold text-slate-100">'+s.symbol+'</div><div class="text-[9px] text-slate-500 max-w-[100px] truncate">'+escapeHTML(stockName(s))+'</div></div></div></td><td class="px-3 mono text-[12px] text-slate-100" data-px="'+s.symbol+'">'+fmtMoney(s.price,s.currency)+'</td><td class="px-3 mono text-[11px] font-semibold '+(s.change>=0?'chg-up':'chg-down')+'" data-chg="'+s.symbol+'">'+fmtPct(s.change)+'</td><td class="px-3 mono text-[11px] text-slate-500 hidden md:table-cell">'+fmtMoney(s.dayHigh,s.currency)+'</td><td class="px-3 mono text-[11px] text-slate-500 hidden md:table-cell">'+fmtMoney(s.dayLow,s.currency)+'</td><td class="px-3 mono text-[11px] text-slate-500 hidden lg:table-cell">'+fmtNum(s.vol/1e6,1)+'M</td><td class="px-3 hidden sm:table-cell"><canvas class="row-spark" width="84" height="30" data-spark="'+s.symbol+'"></canvas></td><td class="px-3 text-end"><button class="watch-star inline-flex p-1.5 rounded-lg hover:bg-white/5 transition-colors" data-star="'+s.symbol+'" aria-label="Watch"><svg width="17" height="17" viewBox="0 0 24 24" fill="'+(state.user&&state.user.watchlist.includes(s.symbol)?'#fbbf24':'none')+'" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></button></td></tr>').join('');
+  $$('canvas[data-spark]', $('#stocksTableBody')).forEach(c=>{ const s=getStock(c.dataset.spark); drawSpark(c, s.history.map(h=>h.close), s.change>=0); });
+}
+$('#mktFilter').addEventListener('input', ()=>renderMarketsTable());
+
+function updateMarketHeader(){
+  const s=getStock(state.selectedSymbol);
+  $('#mkIcon').outerHTML = symbolIconHTML(s.symbol,48).replace('<span ','<span id="mkIcon" ');
+  $('#mkName').textContent = stockName(s);
+  $('#mkSymChip').textContent = s.symbol+' · '+s.exchange;
+  $('#mkCurChip').textContent = s.currency+' · '+(state.lang==='ar'?'سهم عادي':'Common Stock');
+  $('#mkPrice').textContent = fmtMoney(s.price, s.currency);
+  const chgEl=$('#mkChange'); const diff=s.price-s.prevClose;
+  chgEl.textContent = (diff>=0?'+':'-')+fmtMoney(Math.abs(diff),s.currency)+' ('+fmtPct(s.change)+')';
+  chgEl.className='mono text-[11px] font-semibold mt-1 '+(s.change>=0?'chg-up':'chg-down');
+  $('#stOpen').textContent = fmtMoney(s.dayOpen,s.currency);
+  $('#stHigh').textContent = fmtMoney(s.dayHigh,s.currency);
+  $('#stLow').textContent  = fmtMoney(s.dayLow,s.currency);
+  $('#stPrev').textContent = fmtMoney(s.prevClose,s.currency);
+  $('#stVol').textContent  = fmtNum(s.vol/1e6,1)+'M';
+  $('#stCap').textContent  = s.cap;
+  $('#stSector').textContent = sectorName(s);
+  $('#stHigh52').textContent = fmtNum(s.low52)+' – '+fmtNum(s.high52);
+  const inWl = state.user && state.user.watchlist.includes(s.symbol);
+  $('#starWatchSvg').setAttribute('fill', inWl?'#fbbf24':'none');
+  $$('#stocksTableBody tr[data-row-sym]').forEach(r=>r.classList.toggle('selected', r.dataset.rowSym===s.symbol));
+  $('#posEmptySym').textContent = s.symbol;
+  updatePositionCard();
+}
+function updatePositionCard(){
+  const u=state.user; if(!u) return;
+  const sym=state.selectedSymbol, s=getStock(sym), h=u.portfolio.holdings[sym];
+  const fx = s.currency==='SAR'?1/SAR_PER_USD:1;
+  const has = h && h.shares>0;
+  $('#posEmpty').classList.toggle('hidden', has);
+  $('#posData').classList.toggle('hidden', !has);
+  if (has){
+    $('#posShares').textContent = fmtNum(h.shares, h.shares%1?2:0);
+    $('#posAvg').textContent = fmtMoney(h.avgCost, s.currency);
+    $('#posValue').textContent = fmtMoney(h.shares*s.price*fx, 'USD');
+    const pnl=(s.price-h.avgCost)*h.shares*fx, pct=h.avgCost>0?(s.price-h.avgCost)/h.avgCost*100:0;
+    const el=$('#posPnl'); el.textContent=(pnl>=0?'+':'-')+fmtMoney(Math.abs(pnl))+' ('+fmtPct(pct)+')'; el.className='mono text-[14px] font-bold mt-0.5 '+(pnl>=0?'chg-up':'chg-down');
+  }
+}
+function selectStock(sym, side){
+  state.selectedSymbol = sym;
+  if (side) setOrderSide(side);
+  updateMarketHeader(); updateOrderQuote();
+  buildMarketChart();
+  $$('#stocksTableBody tr[data-row-sym]').forEach(r=>r.classList.toggle('selected', r.dataset.rowSym===sym));
+}
+$('#starWatchBtn').addEventListener('click', ()=>toggleWatch(state.selectedSymbol));
+function toggleWatch(sym){
+  const u=state.user; if(!u) return;
+  const i=u.watchlist.indexOf(sym);
+  if(i>=0) u.watchlist.splice(i,1); else u.watchlist.push(sym);
+  saveUsers();
+  $$('[data-star="'+sym+'"] svg').forEach(svg=>svg.setAttribute('fill', u.watchlist.includes(sym)?'#fbbf24':'none'));
+  updateMarketHeader(); renderWatchlist();
+}
+
+/* ============ ORDER FLOW ============ */
+const costPerShareUSD = s => toUSD(s.price, s.currency);
+function setOrderSide(side){
+  state.orderSide = side;
+  $('#segBuyBtn').className = 'seg-btn' + (side==='buy'?' buy-active':'');
+  $('#segSellBtn').className = 'seg-btn' + (side==='sell'?' sell-active':'');
+  $('#segBuyBtn').textContent = t('buy').toUpperCase(); $('#segSellBtn').textContent = t('sell').toUpperCase();
+  $('#placeOrderLabel').textContent = side==='buy' ? t('reviewBuy') : t('reviewSell');
+  $('#placeOrderBtn').className = 'btn w-full !py-3 ' + (side==='buy' ? 'btn-primary' : 'btn-danger-solid');
+  if(side!=='buy'){ $('#placeOrderBtn').style.cssText='background:linear-gradient(135deg,#fb7185,#e11d48);color:#2a020a;box-shadow:0 10px 30px -10px rgba(244,63,94,.5)'; } else { $('#placeOrderBtn').style.cssText=''; }
+  $('#orderError').classList.add('hidden');
+  updateOrderQuote();
+}
+$('#segBuyBtn').addEventListener('click', ()=>setOrderSide('buy'));
+$('#segSellBtn').addEventListener('click', ()=>setOrderSide('sell'));
+$('#qtyMinus').addEventListener('click', ()=>{ const i=$('#orderQty'); i.value=Math.max(0,(parseFloat(i.value)||0)-1); updateOrderQuote(); });
+$('#qtyPlus').addEventListener('click', ()=>{ const i=$('#orderQty'); i.value=Math.floor((parseFloat(i.value)||0)+1); updateOrderQuote(); });
+$('#orderQty').addEventListener('input', updateOrderQuote);
+$$('.qty-pct').forEach(b=>b.addEventListener('click', ()=>{
+  const pct=parseFloat(b.dataset.pct), s=getStock(state.selectedSymbol), u=state.user;
+  if(state.orderSide==='buy'){ $('#orderQty').value = Math.max(0, Math.floor(u.portfolio.cash / costPerShareUSD(s) * pct)); }
+  else { const h=u.portfolio.holdings[s.symbol]; $('#orderQty').value = h?Math.floor(h.shares*pct):0; }
+  updateOrderQuote();
+}));
+function updateOrderQuote(){
+  const s=getStock(state.selectedSymbol), u=state.user; if(!u) return;
+  const fx = s.currency==='SAR'?1/SAR_PER_USD:1;
+  const h = u.portfolio.holdings[s.symbol];
+  const maxBuy = Math.floor(u.portfolio.cash / costPerShareUSD(s));
+  const maxSell = h ? Math.floor(h.shares) : 0;
+  $('#maxInfo').textContent = state.orderSide==='buy' ? (t('maxAvail')+': '+fmtNum(maxBuy,0)) : (t('sharesHeld')+': '+fmtNum(maxSell,0));
+  const qty = parseFloat($('#orderQty').value)||0;
+  const subNative = qty*s.price, subUSD = subNative*fx;
+  $('#estPrice').textContent = fmtMoney(s.price, s.currency);
+  $('#estSubtotal').textContent = fmtMoney(subNative, s.currency) + (s.currency==='SAR' ? '  ≈ '+fmtMoney(subUSD,'USD') : '');
+  $('#estTotal').textContent = fmtMoney(s.currency==='SAR' ? subUSD : subNative, s.currency==='SAR' ? 'USD' : s.currency);
+}
+$('#placeOrderBtn').addEventListener('click', ()=>{
+  const s=getStock(state.selectedSymbol), u=state.user;
+  const qty=parseFloat($('#orderQty').value)||0, err=$('#orderError');
+  err.classList.add('hidden');
+  if (qty<=0){ err.textContent=t('tInvalidQty'); err.classList.remove('hidden'); return; }
+  const fx = s.currency==='SAR'?1/SAR_PER_USD:1, totalUSD = qty*s.price*fx;
+  if (state.orderSide==='buy'){ if (totalUSD > u.portfolio.cash + 1e-9){ err.textContent=t('tInsufCash'); err.classList.remove('hidden'); return; } }
+  else { const h=u.portfolio.holdings[s.symbol]; if(!h || h.shares < qty-1e-9){ err.textContent=t('tInsufShares'); err.classList.remove('hidden'); return; } }
+  // Fill confirm modal
+  $('#ocBadge').textContent = state.orderSide.toUpperCase();
+  $('#ocBadge').className = 'chip !text-[10px] font-extrabold ' + (state.orderSide==='buy' ? '!border-emerald-400/40 !text-emerald-300 !bg-emerald-500/10' : '!border-rose-400/40 !text-rose-300 !bg-rose-500/10');
+  $('#ocIcon').outerHTML = symbolIconHTML(s.symbol,48).replace('<span ','<span id="ocIcon" ');
+  $('#ocSymName').textContent = stockName(s);
+  $('#ocSym').textContent = s.symbol+' · '+s.exchange;
+  $('#ocShares').textContent = fmtNum(qty, qty%1?2:0);
+  $('#ocPrice').textContent = fmtMoney(s.price, s.currency);
+  $('#ocSubtotal').textContent = fmtMoney(qty*s.price, s.currency) + (s.currency==='SAR' ? ' ≈ '+fmtMoney(totalUSD,'USD') : '');
+  $('#ocTotal').textContent = fmtMoney(s.currency==='SAR' ? totalUSD : qty*s.price, s.currency==='SAR' ? 'USD' : s.currency);
+  const confirmBtn=$('#ocConfirmBtn');
+  confirmBtn.className='btn flex-1 ' + (state.orderSide==='buy'?'btn-primary':'btn-danger-solid');
+  openModal('orderModal');
+});
+$('#ocCancelBtn').addEventListener('click', ()=>closeModal('orderModal'));
+$('#ocConfirmBtn').addEventListener('click', ()=>{
+  const s=getStock(state.selectedSymbol), u=state.user;
+  const qty=parseFloat($('#orderQty').value)||0;
+  const fx = s.currency==='SAR'?1/SAR_PER_USD:1, totalUSD=qty*s.price*fx;
+  const h = u.portfolio.holdings[s.symbol] || {shares:0, avgCost:0};
+  if (state.orderSide==='buy'){
+    const newShares=h.shares+qty;
+    const newAvg=(h.shares*h.avgCost + qty*s.price)/newShares;
+    u.portfolio.holdings[s.symbol]={shares:newShares, avgCost:newAvg};
+    u.portfolio.cash -= totalUSD;
+  } else {
+    h.shares -= qty; u.portfolio.cash += totalUSD;
+    if (h.shares<=1e-9) delete u.portfolio.holdings[s.symbol]; else u.portfolio.holdings[s.symbol]=h;
+  }
+  u.portfolio.transactions.unshift({ id:'tx_'+Date.now(), type:state.orderSide, symbol:s.symbol, shares:qty, price:s.price, currency:s.currency, total:qty*s.price, ts:Date.now() });
+  saveUsers();
+  closeModal('orderModal');
+  $('#osDetail').textContent = (state.orderSide==='buy'?'Bought ':'Sold ') + fmtNum(qty,qty%1?2:0) + ' × ' + s.symbol + ' @ ' + fmtMoney(s.price,s.currency);
+  openModal('successModal');
+  if(window.confetti) confetti({particleCount:60,spread:70,origin:{y:.6},colors:['#34d399','#38bdf8','#fbbf24','#ffffff']});
+  state.notifications.unshift({id:'n_'+Date.now(), tone:'check', title:t('tOrderFilled'), sub:(state.orderSide==='buy'?'Bought ':'Sold ')+fmtNum(qty,0)+' × '+s.symbol+' @ '+fmtMoney(s.price,s.currency), time:'now'});
+  renderNotifs();
+  $('#orderQty').value = 1;
+  refreshAfterTrade();
+  toast('success', t('tOrderFilled'), fmtNum(qty,0)+' × '+s.symbol);
+});
+$('#viewPortfolioBtn').addEventListener('click', ()=>{ closeModal('successModal'); switchView('portfolio'); });
+$('#osDoneBtn').addEventListener('click', ()=>closeModal('successModal'));
+
+function refreshAfterTrade(){
+  updateStatCards(); renderWatchlist(); renderMovers(); renderRecentTx(); renderMarketsTable(); renderHoldings(); renderTxList(); renderAllocation(); updatePositionCard(); updateOrderQuote(); buildDashChart();
+  if(state.dashChart && state.dashSeries){ const sum=portfolioSummary(); state.dashSeries.update({time:todayStr(), value:Math.max(1000,sum.total)}); }
+}
+
+/* ============ RENDER · PORTFOLIO ============ */
+const ALLOC_COLORS = ['#34d399','#38bdf8','#fbbf24','#a78bfa','#f472b6','#94a3b8','#f97316'];
+function renderAllocation(){
+  const u=state.user; if(!u) return;
+  const s=portfolioSummary();
+  const entries = Object.keys(u.portfolio.holdings).map(sym=>({sym, val:holdingUSDValue(u.portfolio.holdings[sym], getStock(sym))})).filter(e=>e.val>0).sort((a,b)=>b.val-a.val);
+  entries.push({sym:'CASH', val:s.cash});
+  const total = entries.reduce((a,b)=>a+b.val,0)||1;
+  const top = entries.slice(0,6); const rest = entries.slice(6);
+  if(rest.length) top.push({sym:'OTHER', val:rest.reduce((a,b)=>a+b.val,0)});
+  const R=54, C=2*Math.PI*R; let acc=0;
+  let circles='';
+  top.forEach((e,i)=>{
+    const frac=e.val/total, len=frac*C, col=ALLOC_COLORS[i%ALLOC_COLORS.length];
+    circles += '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="'+col+'" stroke-width="17" stroke-dasharray="'+Math.max(0,len-1.5)+' '+(C-len+1.5)+'" stroke-dashoffset="'+(-acc)+'" stroke-linecap="round" opacity="0.92"/>';
+    acc += len;
+  });
+  $('#donutSvg').innerHTML = '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="rgba(148,163,184,.08)" stroke-width="17"/>' + circles;
+  $('#donutCenterVal').textContent = fmtMoney(s.marketValue,'USD',0);
+  $('#donutLegend').innerHTML = top.map((e,i)=>{ const col=ALLOC_COLORS[i%ALLOC_COLORS.length]; const nm=e.sym==='CASH'?(state.lang==='ar'?'نقدية':'Cash'):e.sym==='OTHER'?(state.lang==='ar'?'أخرى':'Other'):e.sym; return '<div class="flex items-center gap-2 text-[11px]"><span class="w-2.5 h-2.5 rounded-sm shrink-0" style="background:'+col+'"></span><span class="text-slate-300 font-semibold">'+nm+'</span><span class="ms-auto mono text-slate-500">'+fmtNum(e.val/total*100,1)+'%</span></div>'; }).join('');
+}
+function renderHoldings(){
+  const u=state.user; if(!u) return;
+  const body=$('#holdingsBody');
+  const keys=Object.keys(u.portfolio.holdings).filter(k=>u.portfolio.holdings[k].shares>0);
+  $('#holdingsCount').textContent = keys.length + (state.lang==='ar'?' مركز':' open');
+  $('#holdingsEmpty').classList.toggle('hidden', keys.length>0);
+  body.innerHTML = keys.map(sym=>{ const s=getStock(sym), h=u.portfolio.holdings[sym]; const fx=s.currency==='SAR'?1/SAR_PER_USD:1; const val=h.shares*s.price*fx; const cost=h.shares*h.avgCost*fx; const pnl=val-cost, pct=cost>0?pnl/cost*100:0;
+    return '<tr class="trow cursor-pointer" data-goto-markets="'+sym+'"><td class="py-2.5 px-3"><div class="flex items-center gap-2.5">'+symbolIconHTML(sym,30)+'<div><div class="text-[12px] font-bold text-slate-100">'+sym+'</div><div class="text-[9px] text-slate-500">'+s.exchange+'</div></div></div></td><td class="px-3 mono text-[12px] text-slate-200">'+fmtNum(h.shares,h.shares%1?2:0)+'</td><td class="px-3 mono text-[12px] text-slate-200" data-px="'+sym+'">'+fmtMoney(s.price,s.currency)+'</td><td class="px-3 mono text-[12px] text-slate-100" data-mv="'+sym+'">'+fmtMoney(val,'USD')+'</td><td class="px-3 text-end"><span class="mono text-[12px] font-bold '+(pnl>=0?'chg-up':'chg-down')+'" data-pnl="'+sym+'">'+(pnl>=0?'+':'-')+fmtMoney(Math.abs(pnl))+'<br><span class="text-[10px] font-semibold" data-pnlpct="'+sym+'">'+fmtPct(pct)+'</span></span></td></tr>';
+  }).join('');
+  const sum=portfolioSummary();
+  $('#pfTotalValue').textContent=fmtMoney(sum.total);
+  const chg=$('#pfTotalChange'); chg.textContent='+'+fmtMoney(sum.totalPL)+' ('+fmtPct(sum.totalPLPct)+')';
+  chg.className='mono text-[11px] font-semibold mt-1.5 '+(sum.totalPL>=0?'chg-up':'chg-down'); if(sum.totalPL<0) chg.textContent='-'+fmtMoney(Math.abs(sum.totalPL))+' ('+fmtPct(sum.totalPLPct)+')';
+  const dp=$('#pfDayPL'); dp.textContent=(sum.dayPL>=0?'+':'-')+fmtMoney(Math.abs(sum.dayPL)); dp.className='mono text-lg font-bold mt-1.5 leading-none '+(sum.dayPL>=0?'text-up':'text-down');
+  $('#pfCash').textContent=fmtMoney(sum.cash);
+  const up=$('#pfUnrealPL'); up.textContent=(sum.totalPL>=0?'+':'-')+fmtMoney(Math.abs(sum.totalPL)); up.className='mono text-lg font-bold mt-1.5 leading-none '+(sum.totalPL>=0?'text-up':'text-down');
+  const upPct=$('#pfUnrealPLPct'); upPct.textContent=fmtPct(sum.totalPLPct)+' all-time'; upPct.className='mono text-[11px] font-semibold mt-1.5 '+(sum.totalPL>=0?'chg-up':'chg-down');
+}
+function renderTxList(){
+  const all=(state.user&&state.user.portfolio.transactions||[]).slice().sort((a,b)=>b.ts-a.ts);
+  const filtered = state.txFilter==='all' ? all : all.filter(x=>x.type===state.txFilter);
+  $('#txList').innerHTML = filtered.length ? filtered.map(txRowHTML).join('') : '<p class="text-xs text-slate-500 py-8 text-center">—</p>';
+}
+$$('.tx-filter').forEach(b=>b.addEventListener('click', ()=>{
+  state.txFilter=b.dataset.filter;
+  $$('.tx-filter').forEach(x=>x.classList.toggle('active', x===b));
+  renderTxList();
+}));
+$('#exportCsvBtn').addEventListener('click', ()=>{
+  const rows=[['Date','Type','Symbol','Shares','Price','Currency','Total']];
+  (state.user.portfolio.transactions||[]).forEach(tx=>rows.push([new Date(tx.ts).toISOString(), tx.type.toUpperCase(), tx.symbol, tx.shares, tx.price, tx.currency||'USD', tx.total]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='sahm_transactions.csv'; a.click(); URL.revokeObjectURL(a.href);
+  toast('success', state.lang==='ar'?'تم التصدير':'CSV exported', filtered_count()+' rows');
+  function filtered_count(){ return Math.max(0, rows.length-1); }
+});
+
+/* ============ RENDER · PEOPLE ============ */
+function allPeople(){
+  const locals = state.users.filter(u=>u.id!==state.user.id).map(u=>({
+    id:u.id, name:u.name, handle:u.username, bio:u.bio||(state.lang==='ar'?'مستثمر على سهم':'SAHM investor'),
+    ret:userReturnPct(u), followers:u.followers||0, verified:false, img:u.avatar||null, initials:initials(u.name), joined:u.joined||2024,
+    holdings:u.portfolio?u.portfolio.holdings:{}, isLocal:true
+  }));
+  return SEED_PEOPLE.concat(locals);
+}
+function isFollowing(id){ return state.user && state.user.following.includes(id); }
+function renderPeople(){
+  const q=state.peopleQuery.toLowerCase();
+  const people=allPeople().filter(p=>!q || p.handle.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
+  $('#peopleEmpty').classList.toggle('hidden', people.length>0);
+  $('#peopleEmptyQuery').textContent = state.peopleQuery;
+  $('#peopleGrid').innerHTML = people.map(p=>{
+    const following=isFollowing(p.id);
+    const img = p.img && !p.isLocal ? 'https://i.pravatar.cc/150?img='+p.img : (p.isLocal && p.img ? p.img : null);
+    const retUp = p.ret>=0;
+    return '<div class="card card-hover p-4 flex flex-col items-center text-center cursor-pointer person-card" data-person="'+p.id+'"><span class="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-800 flex items-center justify-center text-base font-extrabold text-slate-300 border border-white/10"><span>'+initials(p.name)+'</span>'+(img?'<img src="'+img+'" alt="'+escapeHTML(p.name)+'" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display=\'none\'">':'')+'</span><div class="flex items-center gap-1.5 mt-3"><span class="text-[13px] font-bold text-white">'+escapeHTML(p.name)+'</span>'+(p.verified?'<svg width="14" height="14" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 1.5l3 2.5 3.8-.3 1.5 3.5 3.2 2.1-1.4 3.6 1.4 3.6-3.2 2.1-1.5 3.5-3.8-.3-3 2.5-3-2.5-3.8.3-1.5-3.5L.5 15l1.4-3.6L.5 8 3.7 5.9l1.5-3.5 3.8.3z" opacity="0.95"></path><polyline points="9.5 12 11.5 14 15 10.5" fill="none" stroke="#04150c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>':'')+'</div><div class="mono text-[10px] text-slate-500">@'+escapeHTML(p.handle)+'</div><p class="text-[10.5px] text-slate-500 mt-2 leading-snug line-clamp-2 min-h-[2.1rem]">'+escapeHTML(p.bio)+'</p><div class="flex items-center gap-4 mt-2.5 text-[10px]"><span class="text-slate-500">'+(state.lang==='ar'?'العائد':'Return')+' <b class="mono '+(retUp?'chg-up':'chg-down')+'">'+fmtPct(p.ret)+'</b></span><span class="text-slate-500"><b class="mono text-slate-300">'+fmtNum(p.followers,0)+'</b> '+(state.lang==='ar'?'متابِع':'followers')+'</span></div><button class="follow-btn btn '+(following?'btn-ghost':'btn-primary')+' !py-2 !text-[11px] w-full mt-3" data-follow="'+p.id+'">'+(following?(state.lang==='ar'?'تتابعه':'Following'):(state.lang==='ar'?'متابعة':'Follow'))+'</button></div>';
+  }).join('');
+}
+$('#peopleSearch').addEventListener('input', e=>{ state.peopleQuery=e.target.value.trim(); renderPeople(); });
+
+let currentUserModalPerson=null;
+function openUserModal(id){
+  const p = allPeople().find(x=>x.id===id); if(!p) return;
+  currentUserModalPerson=p;
+  const img = p.img && !p.isLocal ? 'https://i.pravatar.cc/300?img='+p.img : (p.isLocal && p.img ? p.img : null);
+  $('#umInitials').textContent=initials(p.name);
+  const umImg=$('#umImg'); if(img){ umImg.src=img; umImg.style.display=''; } else umImg.style.display='none';
+  $('#umVerified').style.display = p.verified?'':'none';
+  $('#umName').textContent=p.name; $('#umHandle').textContent='@'+p.handle; $('#umBio').textContent=p.bio;
+  const retEl=$('#umReturn'); retEl.textContent=fmtPct(p.ret); retEl.className='mono text-sm font-extrabold '+(p.ret>=0?'chg-up':'chg-down');
+  $('#umFollowers').textContent=fmtNum(p.followers,0); $('#umJoined').textContent=p.joined;
+  const entries=Object.keys(p.holdings||{}).map(sym=>{ const s=getStock(sym); const sh=p.holdings[sym]; const shares = typeof sh==='object'?sh.shares:sh; return {sym, shares, val: shares*(s?s.price:0)*(s&&s.currency==='SAR'?1/SAR_PER_USD:1)}; }).filter(e=>e.shares>0).sort((a,b)=>b.val-a.val);
+  const total=entries.reduce((a,b)=>a+b.val,0)||1;
+  $('#umHoldings').innerHTML = entries.length ? entries.map(e=>'<tr class="trow"><td class="py-2 px-3"><div class="flex items-center gap-2">'+symbolIconHTML(e.sym,26)+'<span class="text-[11px] font-bold text-slate-100">'+e.sym+'</span></div></td><td class="py-2 px-3 mono text-[11px] text-slate-400">'+fmtNum(e.shares,0)+(state.lang==='ar'?' سهم':' sh')+'</td><td class="py-2 px-3 mono text-[11px] text-slate-200">'+fmtMoney(e.val,'USD',0)+'</td><td class="py-2 px-3 mono text-[11px] text-slate-500 text-end">'+fmtNum(e.val/total*100,1)+'%</td></tr>').join('') : '<tr><td class="py-6 text-center text-[11px] text-slate-500">—</td></tr>';
+  syncUserModalFollowBtn();
+  openModal('userModal');
+}
+function syncUserModalFollowBtn(){
+  const p=currentUserModalPerson; if(!p) return;
+  const following=isFollowing(p.id);
+  const btn=$('#umFollowBtn');
+  btn.textContent = following ? (state.lang==='ar'?'تتابعه ✓':'Following ✓') : (state.lang==='ar'?'متابعة':'Follow');
+  btn.className = 'btn w-full mt-4 ' + (following?'btn-ghost':'btn-primary');
+}
+function toggleFollow(id){
+  const u=state.user; const i=u.following.indexOf(id);
+  if(i>=0) u.following.splice(i,1); else u.following.push(id);
+  saveUsers(); renderPeople(); syncUserModalFollowBtn();
+  if(currentUserModalPerson && currentUserModalPerson.id===id){
+    currentUserModalPerson.followers += i>=0?-1:1;
+    $('#umFollowers').textContent=fmtNum(currentUserModalPerson.followers,0);
+  }
+}
+$('#umCloseBtn').addEventListener('click', ()=>closeModal('userModal'));
+$('#umFollowBtn').addEventListener('click', ()=>{ if(currentUserModalPerson) toggleFollow(currentUserModalPerson.id); });
+
+/* ============ NOTIFICATIONS ============ */
+function renderNotifs(){
+  const icons={ up:'<span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(22,199,132,.12);color:#34d399"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg></span>', check:'<span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(56,189,248,.12);color:#38bdf8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 10"></polyline></svg></span>', gold:'<span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(251,191,36,.12);color:#fbbf24"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>' };
+  $('#notifList').innerHTML = state.notifications.slice(0,8).map(n=>'<div class="flex items-start gap-2.5 px-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/[.03] transition-colors">'+(icons[n.tone]||icons.check)+'<div class="min-w-0"><div class="text-[11px] font-bold text-slate-100 leading-snug">'+escapeHTML(n.title)+'</div><div class="text-[10px] text-slate-500 mt-0.5 leading-snug">'+escapeHTML(n.sub)+'</div></div><span class="ms-auto text-[9px] mono text-slate-600 shrink-0">'+escapeHTML(n.time)+'</span></div>').join('');
+  $('#notifBadge').textContent = state.notifications.length;
+  $('#notifBadge').style.display = state.notifications.length ? 'flex' : 'none';
+}
+$('#bellBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  const dd=$('#notifDropdown'); dd.classList.toggle('hidden');
+  $('#avatarDropdown').classList.add('hidden');
+  if(!dd.classList.contains('hidden')) $('#notifBadge').style.display='none';
+});
+$('#markAllReadBtn').addEventListener('click', ()=>{ state.notifications=[]; renderNotifs(); $('#notifDropdown').classList.add('hidden'); });
+
+/* ============ DROPDOWNS / NAV / VIEWS ============ */
+$('#avatarBtn').addEventListener('click', e=>{ e.stopPropagation(); $('#avatarDropdown').classList.toggle('hidden'); $('#notifDropdown').classList.add('hidden'); });
+document.addEventListener('click', ()=>{ $('#notifDropdown').classList.add('hidden'); $('#avatarDropdown').classList.add('hidden'); });
+$$('[data-goto-settings]').forEach(b=>b.addEventListener('click', ()=>{ $('#avatarDropdown').classList.add('hidden'); switchView('settings'); }));
+$('#proBtn').addEventListener('click', ()=>toast('info','SAHM Pro', state.lang==='ar'?'الميزة قادمة قريباً — ترقّب الإطلاق':'Margin & options launching soon — stay tuned.'));
+
+function switchView(view){
+  $$('.view').forEach(v=>v.classList.add('hidden'));
+  const target=$('#view-'+view); if(!target) return;
+  target.classList.remove('hidden');
+  $$('.nav-item[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  $$('.mnav-item[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  $('#mainScroll').scrollTop = 0;
+  if (view==='markets'){
+    if (state.marketChart){ state.marketChart.applyOptions({width:$('#marketChart').clientWidth}); }
+    else { requestAnimationFrame(buildMarketChart); }
+  }
+  if (view==='dashboard' && state.dashChart){ state.dashChart.applyOptions({width:$('#dashChart').clientWidth}); }
+  if (view==='people') renderPeople();
+  if (view==='portfolio'){ renderHoldings(); renderAllocation(); renderTxList(); }
+}
+$$('.nav-item[data-view], .mnav-item[data-view]').forEach(b=>b.addEventListener('click', ()=>switchView(b.dataset.view)));
+document.addEventListener('click', e=>{
+  const g=e.target.closest('[data-goto]'); if(g){ switchView(g.dataset.goto); return; }
+  const gm=e.target.closest('[data-goto-markets]'); if(gm){ switchView('markets'); selectStock(gm.dataset.gotoMarkets); return; }
+  const star=e.target.closest('[data-star]'); if(star){ e.stopPropagation(); toggleWatch(star.dataset.star); return; }
+  const pc=e.target.closest('.person-card'); if(pc && !e.target.closest('.follow-btn')){ openUserModal(pc.dataset.person); return; }
+  const fb=e.target.closest('.follow-btn'); if(fb){ e.stopPropagation(); toggleFollow(fb.dataset.follow); return; }
+  const row=e.target.closest('tr[data-row-sym]'); if(row){ selectStock(row.dataset.rowSym); return; }
+});
+
+/* ============ SETTINGS ============ */
+$$('.settings-tab').forEach(tab=>tab.addEventListener('click', ()=>{
+  $$('.settings-tab').forEach(x=>x.classList.toggle('active', x===tab));
+  $$('.settings-panel').forEach(p=>p.classList.toggle('hidden', p.id!==tab.dataset.tab));
+}));
+// Populate the currency selector with currency codes supported by this browser's Intl implementation.
+(function populateCurrencyOptions(){
+  const select=$('#setCurrency'); if(!select) return;
+  const codes = (typeof Intl.supportedValuesOf==='function' ? Intl.supportedValuesOf('currency') : ['USD','SAR','EUR','GBP','JPY','CAD','AUD','INR','AED','EGP','KWD','BHD','QAR','OMR','JOD','TRY','CNY','KRW','CHF','NZD','ZAR','PKR','BDT','IDR','MYR','SGD']);
+  const names=new Intl.DisplayNames([state.lang||'en'],{type:'currency'});
+  const chosen=new Set([...select.options].map(o=>o.value));
+  codes.sort().forEach(code=>{if(chosen.has(code))return;try{const opt=document.createElement('option');opt.value=code;opt.textContent=code+' — '+names.of(code);select.appendChild(opt);}catch(_){}});
+})();
+$('#setCurrency').addEventListener('change',function(){
+  if(!state.user)return;
+  state.user.currency=this.value; saveUsers();
+  toast('success','Currency preference saved',this.value+' selected. Live exchange conversion is not enabled.');
+});
+
+function fillSettingsForm(){
+  const u=state.user; if(!u) return;
+  $('#setName').value=u.name; $('#setUsername').value=u.username; $('#setEmail').value=u.email; $('#setBio').value=u.bio||'';
+  $('#bioCount').textContent=(u.bio||'').length;
+  $('#twoFASwitch').checked=!!u.twoFA; $('#setCurrency').value=u.currency||'USD';
+  $('#notifPrice').checked=!!(u.notif&&u.notif.price); $('#notifOrder').checked=!!(u.notif&&u.notif.order); $('#notifWeekly').checked=!!(u.notif&&u.notif.weekly);
+  $('#curPw').value=''; $('#newPw').value=''; $('#confirmNewPw').value=''; renderStrength($('#pwBar2'),$('#pwText2'),'');
+  renderSessions();
+}
+$('#setBio').addEventListener('input', e=>{ $('#bioCount').textContent=e.target.value.length; });
+$('#setUsername').addEventListener('input', debounce(function(){
+  const v=this.value.trim().toLowerCase(), hint=$('#setUsernameHint');
+  if(!v){ hint.textContent=''; return; }
+  if(!usernameRe.test(v)){ hint.textContent = state.lang==='ar'?'صيغة غير صالحة':'Invalid format'; hint.className='text-[10px] mt-1 min-h-[1rem] text-rose-400'; return; }
+  if(usernameTaken(v, state.user.id)){ hint.textContent = state.lang==='ar'?'محجوز':'Taken'; hint.className='text-[10px] mt-1 min-h-[1rem] text-rose-400'; return; }
+  hint.textContent = state.lang==='ar'?'متاح':'Available'; hint.className='text-[10px] mt-1 min-h-[1rem] text-emerald-400';
+},200));
+$('#saveProfileBtn').addEventListener('click', function(){
+  const u=state.user;
+  const name=$('#setName').value.trim(), username=$('#setUsername').value.trim().toLowerCase(), bio=$('#setBio').value.trim();
+  const hint=$('#setUsernameHint');
+  if(name.length<3){ hint.textContent = state.lang==='ar'?'الاسم قصير جداً':'Name too short'; hint.className='text-[10px] mt-1 min-h-[1rem] text-rose-400'; return; }
+  if(!usernameRe.test(username) || usernameTaken(username, u.id)){ hint.textContent = state.lang==='ar'?'اسم مستخدم غير صالح أو محجوز':'Username invalid or taken'; hint.className='text-[10px] mt-1 min-h-[1rem] text-rose-400'; return; }
+  const btn=this, label=btn.querySelector('.save-label'); const orig=label.textContent;
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  setTimeout(()=>{
+    u.name=name; u.username=username; u.bio=bio; saveUsers();
+    btn.disabled=false; btn.innerHTML='<span class="save-label">'+escapeHTML(orig)+'</span>';
+    renderAvatars(); renderPeople();
+    $('#settingsNamePreview').textContent=name; $('#settingsHandlePreview').textContent='@'+username;
+    toast('success', t('tSaved'));
+  }, 650);
+});
+$('#updatePwBtn').addEventListener('click', ()=>{
+  const u=state.user, cur=$('#curPw').value, nw=$('#newPw').value, cf=$('#confirmNewPw').value;
+  if (cur!==u.password) return toast('error', state.lang==='ar'?'خطأ':'Error', state.lang==='ar'?'كلمة المرور الحالية غير صحيحة':'Current password is incorrect');
+  if (nw.length<8) return toast('error', state.lang==='ar'?'خطأ':'Error', state.lang==='ar'?'كلمة المرور الجديدة قصيرة':'New password must be at least 8 characters');
+  if (nw!==cf) return toast('error', state.lang==='ar'?'خطأ':'Error', state.lang==='ar'?'غير متطابقتين':'Passwords do not match');
+  u.password=nw; saveUsers();
+  $('#curPw').value=''; $('#newPw').value=''; $('#confirmNewPw').value=''; renderStrength($('#pwBar2'),$('#pwText2'),'');
+  toast('success', t('tPwUpdated'));
+});
+$('#twoFASwitch').addEventListener('change', function(){
+  const u=state.user, want=this.checked;
+  if (want){
+    this.checked=false;
+    openOtp({ title: state.lang==='ar'?'تفعيل المصادقة الثنائية':'Enable Two-Factor Auth', subtitle: state.lang==='ar'?'أدخل الرمز المرسل لتأكيد تفعيل المصادقة الثنائية':'Enter the passcode sent to confirm 2FA setup', onSuccess: ()=>{
+      u.twoFA=true; saveUsers(); $('#twoFASwitch').checked=true; toast('success', t('t2faOn'));
+    }});
+  } else {
+    u.twoFA=false; saveUsers(); toast('info', t('t2faOff'));
+  }
+});
+function renderSessions(){
+  $('#sessionsList').innerHTML = state.sessions.map(s=>'<div class="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0"><span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 '+(s.current?'text-emerald-300':'text-slate-400')+'" style="background:'+(s.current?'rgba(52,211,153,.12)':'rgba(255,255,255,.04)')+'">'+(s.icon==='laptop'?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>')+'</span><div class="min-w-0 flex-1"><div class="text-[12px] font-bold text-slate-100 flex items-center gap-2 flex-wrap">'+escapeHTML(s.device)+(s.current?'<span class="text-[9px] font-extrabold text-emerald-300 bg-emerald-500/12 border border-emerald-400/30 rounded px-1.5 py-0.5">'+(state.lang==='ar'?'الجلسة الحالية':'CURRENT')+'</span>':'')+'</div><div class="text-[10px] text-slate-500 truncate">'+escapeHTML(s.meta)+' · '+escapeHTML(s.time)+'</div></div>'+(s.current?'':'<button class="revoke-session text-[10px] font-bold text-rose-300 hover:text-rose-200 border border-rose-400/30 rounded-lg px-2.5 py-1.5 transition-colors shrink-0" data-session="'+s.id+'">'+(state.lang==='ar'?'إنهاء':'Revoke')+'</button>')+'</div>').join('');
+}
+document.addEventListener('click', e=>{
+  const btn=e.target.closest('.revoke-session'); if(!btn) return;
+  state.sessions = state.sessions.filter(s=>s.id!==btn.dataset.session);
+  renderSessions(); toast('info', state.lang==='ar'?'تم إنهاء الجلسة':'Session revoked');
+});
+$('#signOutOthersBtn').addEventListener('click', ()=>{ state.sessions = state.sessions.filter(s=>s.current); renderSessions(); toast('success', state.lang==='ar'?'تم إنهاء الجلسات الأخرى':'Other sessions signed out'); });
+[['notifPrice','price'],['notifOrder','order'],['notifWeekly','weekly']].forEach(([id,key])=>{
+  $('#'+id).addEventListener('change', function(){ state.user.notif[key]=this.checked; saveUsers(); toast('success', t('tNotifs')); });
+});
+$('#resetDemoBtn').addEventListener('click', ()=>openConfirm(t('cmResetTitle'), t('cmResetMsg'), t('cmReset'), ()=>{
+  localStorage.removeItem('sahm_users'); localStorage.removeItem('sahm_session');
+  toast('info', t('tReset')); setTimeout(()=>location.reload(), 600);
+}));
+
+/* ============ LIVE ENGINE ============ */
+function tickStocks(){
+  state.stocks.forEach(s=>{
+    const ch=(Math.random()-0.5)*0.0034;
+    const old=s.price;
+    s.price=Math.max(1, s.price*(1+ch));
+    s.dayHigh=Math.max(s.dayHigh,s.price); s.dayLow=Math.min(s.dayLow,s.price);
+    s.change=(s.price-s.prevClose)/s.prevClose*100;
+    s.lastDir=s.price>=old?1:-1;
+    const last=s.history[s.history.length-1];
+    last.close=s.price; last.value=s.price; last.high=Math.max(last.high,s.price); last.low=Math.min(last.low,s.price);
+  });
+}
+function updateLiveUI(){
+  tickStocks(); tickIndices();
+  // Price & change cells everywhere
+  $$('[data-px]').forEach(el=>{
+    const s=getStock(el.dataset.px); if(!s) return;
+    const prev=pxCache[s.symbol];
+    el.textContent=fmtMoney(s.price,s.currency);
+    if(prev!==undefined && prev!==s.price){ el.classList.remove('flash-up','flash-down'); void el.offsetWidth; el.classList.add(s.price>prev?'flash-up':'flash-down'); setTimeout(()=>el.classList.remove('flash-up','flash-down'),700); }
+  });
+  $$('[data-chg]').forEach(el=>{ const s=getStock(el.dataset.chg); if(!s) return; el.textContent=fmtPct(s.change); el.classList.toggle('chg-up',s.change>=0); el.classList.toggle('chg-down',s.change<0); });
+  // Tape
+  $$('#tapeInner .tape-item').forEach(item=>{ const s=getStock(item.dataset.tape); if(!s) return; const px=item.querySelector('.tape-px'), chg=item.querySelector('.tape-chg'); if(px)px.textContent=fmtNum(s.price); if(chg){ chg.textContent=fmtPct(s.change); chg.className='mono tape-chg '+(s.change>=0?'chg-up':'chg-down'); } });
+  // Selected stock header
+  const s=getStock(state.selectedSymbol);
+  if(s){
+    $('#mkPrice').textContent=fmtMoney(s.price,s.currency);
+    const diff=s.price-s.prevClose, chgEl=$('#mkChange');
+    chgEl.textContent=(diff>=0?'+':'-')+fmtMoney(Math.abs(diff),s.currency)+' ('+fmtPct(s.change)+')';
+    chgEl.className='mono text-[11px] font-semibold mt-1 '+(s.change>=0?'chg-up':'chg-down');
+    $('#stHigh').textContent=fmtMoney(s.dayHigh,s.currency); $('#stLow').textContent=fmtMoney(s.dayLow,s.currency);
+    const last=s.history[s.history.length-1];
+    if(state.marketChart){
+      const pt={time:last.time, value:last.value, open:last.open, high:last.high, low:last.low, close:last.close};
+      try{ if(state.marketArea) state.marketArea.update({time:last.time, value:last.value}); if(state.marketCandle) state.marketCandle.update(pt); }catch(e){}
+    }
+  }
+  // Portfolio values
+  if(state.user){
+    updateStatCards(); updatePositionCard(); updateOrderQuote();
+    if(state.dashSeries){ const sum=portfolioSummary(); try{ state.dashSeries.update({time:todayStr(), value:Math.max(1000,sum.total)}); }catch(e){} }
+    // holdings value cells
+    $$('[data-mv]').forEach(el=>{ const sym=el.dataset.mv, st=getStock(sym), h=state.user.portfolio.holdings[sym]; if(st&&h){ const fx=st.currency==='SAR'?1/SAR_PER_USD:1; el.textContent=fmtMoney(h.shares*st.price*fx,'USD'); } });
+    $$('[data-pnl]').forEach(el=>{ const sym=el.dataset.pnl, st=getStock(sym), h=state.user.portfolio.holdings[sym]; if(st&&h){ const fx=st.currency==='SAR'?1/SAR_PER_USD:1; const val=h.shares*st.price*fx, cost=h.shares*h.avgCost*fx, pnl=val-cost, pct=cost>0?pnl/cost*100:0; el.innerHTML=(pnl>=0?'+':'-')+fmtMoney(Math.abs(pnl))+'<br><span class="text-[10px] font-semibold">'+fmtPct(pct)+'</span>'; el.className='mono text-[12px] font-bold '+(pnl>=0?'chg-up':'chg-down'); } });
+  }
+  state.stocks.forEach(st=>pxCache[st.symbol]=st.price);
+}
+function startTicking(){
+  if (state.ticking) return; state.ticking=true;
+  setInterval(()=>{ try{ updateLiveUI(); }catch(e){ console.warn(e); } }, 1600);
+}
+
+/* ============ MARKET STATUS ============ */
+(function(){
+  const now=new Date(), day=now.getUTCDay(), mins=now.getUTCHours()*60+now.getUTCMinutes();
+  const open = day>=1 && day<=5 && mins>=810 && mins<1200;
+  $('#mktStatusText').textContent = open ? 'LIVE · MARKET OPEN' : 'LIVE · AFTER HOURS';
+  $('#mktStatusDot').classList.toggle('closed', !open);
+})();
+
+/* ============ RANGE / TF PILLS ============ */
+$$('.pf-range').forEach(b=>b.addEventListener('click', ()=>{ state.pfRange=b.dataset.range; $$('.pf-range').forEach(x=>x.classList.toggle('active',x===b)); buildDashChart(); }));
+$$('.mkt-range').forEach(b=>b.addEventListener('click', ()=>{ state.mktTF=b.dataset.tf; $$('.mkt-range').forEach(x=>x.classList.toggle('active',x===b)); buildMarketChart(); }));
+$('#chartAreaBtn').addEventListener('click', ()=>{ state.chartType='area'; $('#chartAreaBtn').classList.add('active'); $('#chartCandlesBtn').classList.remove('active'); buildMarketChart(); });
+$('#chartCandlesBtn').addEventListener('click', ()=>{ state.chartType='candles'; $('#chartCandlesBtn').classList.add('active'); $('#chartAreaBtn').classList.remove('active'); buildMarketChart(); });
+
+/* ============ RESIZE ============ */
+window.addEventListener('resize', debounce(()=>{
+  if(state.dashChart){ const el=$('#dashChart'); if(el.offsetParent) state.dashChart.applyOptions({width:el.clientWidth}); }
+  if(state.marketChart){ const el=$('#marketChart'); if(el.offsetParent) state.marketChart.applyOptions({width:el.clientWidth}); }
+  if(state.authChart){ const el=$('#authChart'); if(el && el.offsetParent!==null && el.clientWidth) state.authChart.applyOptions({width:el.clientWidth, height:el.clientHeight}); }
+},120));
+
+/* ============ BOOT ============ */
+function buildApp(){
+  applyLang(state.lang);
+  renderAvatars(); renderDynamicText();
+  updateStatCards(); renderWatchlist(); renderMovers(); renderRecentTx();
+  renderMarketsTable(); updateMarketHeader(); updateOrderQuote();
+  renderHoldings(); renderTxList(); renderAllocation(); renderPeople(); renderNotifs(); fillSettingsForm();
+  buildDashChart();
+  state.stocks.forEach(s=>pxCache[s.symbol]=s.price);
+  startTicking();
+}
+loadUsers();
+buildTape();
+const sessionId = localStorage.getItem('sahm_session');
+const sessionUser = sessionId ? state.users.find(u=>u.id===sessionId) : null;
+if (sessionUser){
+  state.user = sessionUser;
+  $('#authScreen').classList.add('hidden');
+  const app=$('#appScreen'); app.classList.remove('hidden'); app.classList.add('flex');
+  buildApp();
+} else {
+  applyLang(state.lang);
+  requestAnimationFrame(()=>buildAuthChart());
+}
+setInterval(()=>{ try{ tickIndices(); }catch(e){} }, 2500);
+</script>
+</body>
+</html>
