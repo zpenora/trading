@@ -4134,5 +4134,744 @@ TLD-VU2WR9
   openProfileFromQuery();
 })();
 </script>
+
+<script>
+// Public browser configuration only. Use a Supabase publishable/anon key; NEVER put a service_role or secret key here.
+window.SAHM_SUPABASE_CONFIG = {
+  url: 'https://odeinqlwfredqnbosdrl.supabase.co',
+  publishableKey: 'sb_publishable_pEA6OzUcrUtyN_4fMqpstQ_VZvyEmDC'
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* SAHM real online community integration. Configure window.SAHM_SUPABASE_CONFIG before publishing. */
+(function () {
+  'use strict';
+
+  const cfg = window.SAHM_SUPABASE_CONFIG || {};
+  const projectUrl = String(cfg.url || '').trim();
+  const publicKey = String(cfg.publishableKey || cfg.anonKey || '').trim();
+  const isPlaceholder = !projectUrl || /YOUR_PROJECT|YOUR-PROJECT|example\.supabase\.co/i.test(projectUrl) ||
+    !publicKey || /YOUR_SUPABASE|YOUR-PUBLISHABLE|YOUR_ANON|replace.?me/i.test(publicKey);
+  const hasLibrary = !!(window.supabase && typeof window.supabase.createClient === 'function');
+  const configured = !isPlaceholder && hasLibrary && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(projectUrl);
+  let db = null;
+  let authUser = null;
+  let profileCache = new Map();
+  let directory = [];
+  let followerRows = [];
+  let friendshipRows = [];
+  let activeChatId = null;
+  let realtimeChannel = null;
+  let socialChannel = null;
+  let searchTimer = null;
+  let directoryRequest = 0;
+  let authBusy = false;
+  let lastMessageRequest = 0;
+
+  const byId = id => document.getElementById(id);
+  const featureText = (en, ar) => (window.state && state.lang === 'ar') ? ar : en;
+  const safe = value => (typeof window.escapeHTML === 'function') ? escapeHTML(String(value == null ? '' : value)) : String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const nowYear = () => new Date().getFullYear();
+  const currentId = () => authUser && authUser.id;
+  const isSelf = id => !!currentId() && id === currentId();
+  const profileUrl = username => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('profile', username);
+    url.hash = '';
+    return url.toString();
+  };
+
+  function readJSON(key, fallback) {
+    try { const value = JSON.parse(localStorage.getItem(key) || 'null'); return value == null ? fallback : value; }
+    catch (_) { return fallback; }
+  }
+  function setAuthMessage(message, kind) {
+    const box = byId('authError');
+    const text = byId('authErrorText');
+    if (!box || !text) return;
+    if (!message) { box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    box.className = 'mb-4 flex items-start gap-2.5 text-[13px] rounded-xl px-3.5 py-2.5 ' +
+      (kind === 'success' ? 'text-emerald-200 bg-emerald-500/10 border border-emerald-500/25' : 'text-rose-300 bg-rose-500/10 border border-rose-500/25');
+    text.textContent = message;
+  }
+  function setSetupBanner(ready, extra) {
+    const card = document.querySelector('#authScreen .card');
+    if (!card) return;
+    let banner = byId('sahmOnlineSetupBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'sahmOnlineSetupBanner';
+      banner.className = 'mb-5 rounded-xl border px-3.5 py-3 text-xs leading-relaxed';
+      card.prepend(banner);
+    }
+    banner.className = 'mb-5 rounded-xl border px-3.5 py-3 text-xs leading-relaxed ' + (ready ? 'border-emerald-400/20 bg-emerald-500/5 text-emerald-100' : 'border-amber-400/25 bg-amber-500/5 text-amber-100');
+    banner.textContent = ready
+      ? 'Online community mode is enabled. Email accounts, profiles, follows, friend links and messages use your connected Supabase project.'
+      : (extra || 'Online mode is not connected yet. Set the Supabase Project URL and publishable key in this HTML, then run sahm_supabase_setup.sql in the project SQL Editor. See SUPABASE_SETUP.md. Local demo sign-in is disabled in this version.');
+  }
+  function showAuthOnly() {
+    state.user = null;
+    const app = byId('appScreen');
+    const auth = byId('authScreen');
+    if (app) { app.classList.add('hidden'); app.classList.remove('flex'); }
+    if (auth) auth.classList.remove('hidden');
+  }
+  function showAppOnly() {
+    const app = byId('appScreen');
+    const auth = byId('authScreen');
+    if (auth) auth.classList.add('hidden');
+    if (app) { app.classList.remove('hidden'); app.classList.add('flex'); }
+  }
+  function blockLocalAuth(form, handler) {
+    if (!form) return;
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!configured || !db) {
+        setAuthMessage('Online accounts are not connected. Follow SUPABASE_SETUP.md to configure Supabase before registering or signing in.', 'error');
+        return;
+      }
+      handler(event).catch(error => {
+        console.error('[SAHM online]', error);
+        setAuthMessage(error && error.message ? error.message : 'Could not connect. Check the Supabase setup and try again.', 'error');
+      });
+    }, true);
+  }
+  function setBusy(button, busy, label) {
+    if (!button) return;
+    button.disabled = !!busy;
+    if (busy) {
+      button.dataset.sahmOriginalHtml = button.innerHTML;
+      button.innerHTML = '<span class="spinner"></span>';
+    } else if (button.dataset.sahmOriginalHtml) {
+      button.innerHTML = button.dataset.sahmOriginalHtml;
+      delete button.dataset.sahmOriginalHtml;
+    } else if (label) button.textContent = label;
+  }
+  function profileRowToPerson(row) {
+    return {
+      id: row.id,
+      name: row.display_name || row.username || 'SAHM user',
+      handle: row.username,
+      username: row.username,
+      bio: row.bio || '',
+      img: row.avatar_url || null,
+      avatar: row.avatar_url || null,
+      verified: true,
+      joined: row.created_at ? new Date(row.created_at).getFullYear() : nowYear(),
+      followers: Number(row.followers_count || 0),
+      followingCount: Number(row.following_count || 0),
+      ret: 0,
+      holdings: {},
+      isLocal: true,
+      email: ''
+    };
+  }
+  function personToAccount(person) {
+    return {
+      id: person.id,
+      name: person.name,
+      username: person.handle,
+      email: '',
+      bio: person.bio || '',
+      avatar: person.img || null,
+      twoFA: false,
+      verified: true,
+      joined: person.joined || nowYear(),
+      followers: person.followers || 0,
+      following: [],
+      friends: [],
+      watchlist: ['NVDA', 'AAPL'],
+      notif: { price: true, order: true, weekly: false },
+      portfolio: { cash: 0, holdings: {}, transactions: [] },
+      isRemoteAccount: true
+    };
+  }
+  function localStateKey(uid) { return 'sahm_online_trading_v1_' + uid; }
+  function makeCurrentAccount(auth, row) {
+    const stored = readJSON(localStateKey(auth.id), null);
+    let portfolio = stored && stored.portfolio ? stored.portfolio : { cash: 100, holdings: {}, transactions: [] };
+    portfolio = {
+      cash: Number(portfolio.cash) || 0,
+      holdings: portfolio.holdings || {},
+      transactions: Array.isArray(portfolio.transactions) ? portfolio.transactions : []
+    };
+    const rewardHistory = stored && Array.isArray(stored.rewardHistory) ? stored.rewardHistory : [{type:'starter', amount:100, label:'$100 starter gift · virtual funds', ts:Date.now()}];
+    return {
+      id: auth.id,
+      name: row.display_name || auth.user_metadata?.display_name || auth.email?.split('@')[0] || 'SAHM user',
+      username: row.username || auth.user_metadata?.username || ('user_' + auth.id.slice(0, 10)),
+      email: auth.email || '',
+      bio: row.bio || '',
+      avatar: row.avatar_url || null,
+      twoFA: false,
+      verified: !!auth.email_confirmed_at,
+      joined: row.created_at ? new Date(row.created_at).getFullYear() : nowYear(),
+      followers: 0,
+      following: [],
+      friends: [],
+      watchlist: stored && Array.isArray(stored.watchlist) ? stored.watchlist : ['NVDA','AAPL'],
+      notif: stored && stored.notif ? stored.notif : {price:true,order:true,weekly:false},
+      portfolio,
+      redeemedCoupons: stored && Array.isArray(stored.redeemedCoupons) ? stored.redeemedCoupons : [],
+      rewardHistory,
+      starterGiftClaimed: true,
+      isRemoteAccount: true
+    };
+  }
+  window.saveUsers = function () {
+    if (!configured || !authUser || !state.user || state.user.id !== authUser.id) return;
+    try {
+      localStorage.setItem(localStateKey(authUser.id), JSON.stringify({
+        portfolio: state.user.portfolio || {cash:0,holdings:{},transactions:[]},
+        watchlist: state.user.watchlist || [],
+        notif: state.user.notif || {price:true,order:true,weekly:false},
+        redeemedCoupons: state.user.redeemedCoupons || [],
+        rewardHistory: state.user.rewardHistory || [],
+        starterGiftClaimed: true
+      }));
+    } catch (error) { console.warn('Could not save this browser’s paper-trading state.', error); }
+  };
+
+  async function loadOwnProfile(auth) {
+    let result = await db.from('profiles').select('id,username,display_name,bio,avatar_url,created_at').eq('id', auth.id).maybeSingle();
+    if (result.error) throw new Error('Profile table is not ready. Run sahm_supabase_setup.sql first. (' + result.error.message + ')');
+    if (result.data) return result.data;
+    const metadata = auth.user_metadata || {};
+    const row = {
+      id: auth.id,
+      username: String(metadata.username || ('user_' + auth.id.slice(0, 10))).toLowerCase(),
+      display_name: String(metadata.display_name || auth.email?.split('@')[0] || 'SAHM user').slice(0, 60),
+      bio: ''
+    };
+    const inserted = await db.from('profiles').upsert(row, { onConflict: 'id' }).select('id,username,display_name,bio,avatar_url,created_at').single();
+    if (inserted.error) throw new Error('Could not create the profile row. Run the setup SQL and check the username. (' + inserted.error.message + ')');
+    return inserted.data;
+  }
+  async function refreshSocial() {
+    if (!currentId()) return;
+    const uid = currentId();
+    const [followResult, friendResult] = await Promise.all([
+      db.from('follows').select('follower_id,following_id,created_at').or('follower_id.eq.' + uid + ',following_id.eq.' + uid),
+      db.from('friendships').select('user_id,friend_id,created_at').or('user_id.eq.' + uid + ',friend_id.eq.' + uid)
+    ]);
+    if (followResult.error) throw followResult.error;
+    if (friendResult.error) throw friendResult.error;
+    followerRows = followResult.data || [];
+    friendshipRows = friendResult.data || [];
+    state.user.following = followerRows.filter(row => row.follower_id === uid).map(row => row.following_id);
+    state.user.friends = [...new Set(friendshipRows.map(row => row.user_id === uid ? row.friend_id : row.user_id))];
+    state.user.followers = followerRows.filter(row => row.following_id === uid).length;
+    if (typeof window.saveUsers === 'function') window.saveUsers();
+  }
+  async function fetchDirectory(searchTerm) {
+    if (!currentId()) return [];
+    const sequence = ++directoryRequest;
+    const { data, error } = await db.rpc('search_profiles', { search_term: searchTerm || null });
+    if (error) throw new Error('Could not search registered profiles. Run the setup SQL and check Supabase API settings. (' + error.message + ')');
+    if (sequence !== directoryRequest) return directory;
+    const people = (data || []).map(profileRowToPerson);
+    people.forEach(person => profileCache.set(person.id, person));
+    directory = people;
+    const otherAccounts = people.filter(person => person.id !== currentId()).map(personToAccount);
+    state.users = [state.user, ...otherAccounts];
+    return people;
+  }
+  function isFollowingRemote(id) { return !!(state.user && state.user.following && state.user.following.includes(id)); }
+  function isFriendRemote(id) { return !!(state.user && state.user.friends && state.user.friends.includes(id)); }
+  function ownFriendLinkExists(id) { return friendshipRows.some(row => row.user_id === currentId() && row.friend_id === id); }
+  function renderRemotePeople() {
+    if (!state.user) return;
+    const selfCard = byId('peopleSelfCard');
+    if (selfCard) {
+      selfCard.classList.remove('hidden');
+      byId('peopleSelfName').textContent = state.user.name;
+      byId('peopleSelfHandle').textContent = '@' + state.user.username;
+      byId('peopleSelfFollowers').textContent = String(state.user.followers || 0);
+      byId('peopleSelfFollowing').textContent = String((state.user.following || []).length);
+      const avatar = byId('peopleSelfAvatar');
+      if (state.user.avatar) avatar.innerHTML = '<img src="' + safe(state.user.avatar) + '" class="w-full h-full object-cover" alt="" onerror="this.remove()">';
+      else avatar.textContent = typeof initials === 'function' ? initials(state.user.name) : state.user.name.slice(0, 2).toUpperCase();
+    }
+    const people = directory.filter(person => person.id !== currentId());
+    byId('peopleEmpty').classList.toggle('hidden', people.length > 0);
+    byId('peopleEmptyQuery').textContent = state.peopleQuery || '';
+    byId('peopleGrid').innerHTML = people.map(person => {
+      const follow = isFollowingRemote(person.id);
+      const avatar = person.img ? '<img src="' + safe(person.img) + '" alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.remove()">' : '';
+      return '<div class="card card-hover p-4 flex flex-col items-center text-center cursor-pointer person-card" data-person="' + safe(person.id) + '">' +
+        '<span class="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-800 flex items-center justify-center text-base font-extrabold text-slate-300 border border-white/10"><span>' + safe(typeof initials === 'function' ? initials(person.name) : person.name.slice(0,2)) + '</span>' + avatar + '</span>' +
+        '<div class="flex items-center gap-1.5 mt-3"><span class="text-[13px] font-bold text-white">' + safe(person.name) + '</span></div>' +
+        '<div class="mono text-[10px] text-slate-500">@' + safe(person.handle) + '</div>' +
+        '<p class="text-[10.5px] text-slate-500 mt-2 leading-snug line-clamp-2 min-h-[2.1rem]">' + safe(person.bio || 'SAHM community member') + '</p>' +
+        '<div class="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2.5 text-[10px]"><span class="text-slate-500"><b class="mono text-slate-300">' + Number(person.followers || 0) + '</b> followers</span><span class="text-slate-500"><b class="mono text-slate-300">' + Number(person.followingCount || 0) + '</b> following</span></div>' +
+        '<button type="button" class="follow-btn btn ' + (follow ? 'btn-ghost' : 'btn-primary') + ' !py-2 !text-[11px] w-full mt-3" data-follow="' + safe(person.id) + '">' + (follow ? 'Following ✓' : 'Follow') + '</button>' +
+        '</div>';
+    }).join('');
+  }
+  window.allPeople = function () { return directory.slice(); };
+  window.renderPeople = function () { renderRemotePeople(); };
+
+  async function reloadDirectory(searchTerm) {
+    if (!configured || !currentId()) return;
+    try { await fetchDirectory(searchTerm); renderRemotePeople(); }
+    catch (error) { console.error(error); setAuthMessage(error.message || 'Profile search failed.', 'error'); }
+  }
+  async function fetchPersonById(id) {
+    if (id === currentId() && state.user) {
+      const cachedSelf = directory.find(person => person.id === id);
+      return cachedSelf || {
+        id: state.user.id, name: state.user.name, handle: state.user.username, username: state.user.username,
+        bio: state.user.bio || '', img: state.user.avatar || null, verified: true, joined: state.user.joined || nowYear(),
+        followers: Number(state.user.followers || 0), followingCount: (state.user.following || []).length,
+        ret: 0, holdings: {}, isLocal: true
+      };
+    }
+    if (profileCache.has(id)) return profileCache.get(id);
+    const { data, error } = await db.from('profiles').select('id,username,display_name,bio,avatar_url,created_at').eq('id', id).maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const row = Object.assign({}, data, { followers_count: 0, following_count: 0 });
+    const person = profileRowToPerson(row);
+    profileCache.set(person.id, person);
+    return person;
+  }
+  async function fetchPersonByHandle(handle) {
+    const normalized = String(handle || '').replace(/^@/, '').toLowerCase();
+    const exactCached = [...profileCache.values()].find(person => person.handle.toLowerCase() === normalized);
+    if (exactCached) return exactCached;
+    const { data, error } = await db.rpc('search_profiles', { search_term: normalized });
+    if (error) throw error;
+    const row = (data || []).find(item => item.username.toLowerCase() === normalized);
+    if (!row) return null;
+    const person = profileRowToPerson(row);
+    profileCache.set(person.id, person);
+    if (!directory.some(item => item.id === person.id)) directory.unshift(person);
+    return person;
+  }
+  function syncRemoteModalButtons(person) {
+    const self = isSelf(person.id);
+    const following = isFollowingRemote(person.id);
+    const friend = isFriendRemote(person.id);
+    const ownFriend = ownFriendLinkExists(person.id);
+    byId('umFollowBtn').classList.toggle('hidden', self);
+    byId('umFollowBtn').textContent = following ? 'Following ✓' : 'Follow';
+    byId('umFriendBtn').classList.toggle('hidden', self);
+    byId('umFriendBtn').textContent = ownFriend ? 'Remove friend' : (friend ? 'Add friend back' : 'Add friend');
+    byId('umMessageBtn').classList.toggle('hidden', self || !friend);
+    byId('umShareBtn').classList.toggle('hidden', false);
+  }
+  let activeProfile = null;
+  window.openUserModal = async function (id) {
+    try {
+      const person = await fetchPersonById(id);
+      if (!person) { if (typeof toast === 'function') toast('error', 'Profile unavailable', 'That profile could not be found in the shared database.'); return; }
+      activeProfile = person;
+      byId('umInitials').textContent = typeof initials === 'function' ? initials(person.name) : person.name.slice(0, 2).toUpperCase();
+      const image = byId('umImg');
+      if (person.img) { image.src = person.img; image.style.display = ''; }
+      else { image.removeAttribute('src'); image.style.display = 'none'; }
+      byId('umVerified').style.display = person.verified ? '' : 'none';
+      byId('umName').textContent = person.name;
+      byId('umHandle').textContent = '@' + person.handle;
+      byId('umBio').textContent = person.bio || '';
+      byId('umReturn').textContent = '—';
+      byId('umReturn').className = 'mono text-sm font-extrabold text-slate-400';
+      byId('umFollowers').textContent = String(Number(person.followers || 0));
+      byId('umFollowing').textContent = String(Number(person.followingCount || 0));
+      byId('umJoined').textContent = String(person.joined || '—');
+      byId('umHoldings').innerHTML = '<tr><td class="py-6 px-3 text-center text-[11px] text-slate-500">Trading holdings are not part of the public online profile.</td></tr>';
+      byId('umActionNote').textContent = 'Public profile. Email addresses are not shown. Share this link with other signed-in SAHM users.';
+      syncRemoteModalButtons(person);
+      if (typeof openModal === 'function') openModal('userModal'); else byId('userModal').classList.add('open');
+    } catch (error) {
+      console.error(error);
+      if (typeof toast === 'function') toast('error', 'Profile error', error.message || 'Could not load that profile.');
+    }
+  };
+
+  async function toggleRemoteFollow(id) {
+    if (!currentId() || isSelf(id)) return;
+    const existing = followerRows.find(row => row.follower_id === currentId() && row.following_id === id);
+    if (existing) {
+      const { error } = await db.from('follows').delete().eq('follower_id', currentId()).eq('following_id', id);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from('follows').insert({ follower_id: currentId(), following_id: id });
+      if (error && !/duplicate key/i.test(error.message || '')) throw error;
+    }
+    await refreshSocial();
+    await reloadDirectory(state.peopleQuery || '');
+    if (activeProfile && activeProfile.id === id) await window.openUserModal(id);
+  }
+  window.toggleFollow = function (id) { toggleRemoteFollow(id).catch(error => { console.error(error); if (typeof toast === 'function') toast('error', 'Follow failed', error.message || 'Could not update this follow.'); }); };
+
+  async function toggleRemoteFriend(id) {
+    if (!currentId() || isSelf(id)) return;
+    if (ownFriendLinkExists(id)) {
+      const { error } = await db.from('friendships').delete().eq('user_id', currentId()).eq('friend_id', id);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from('friendships').insert({ user_id: currentId(), friend_id: id });
+      if (error && !/duplicate key/i.test(error.message || '')) throw error;
+    }
+    await refreshSocial();
+    await reloadDirectory(state.peopleQuery || '');
+    await renderRemoteFriendList();
+    if (activeProfile && activeProfile.id === id) await window.openUserModal(id);
+    if (typeof toast === 'function') toast('success', 'Friends updated', isFriendRemote(id) ? 'You can now message this friend.' : 'Friend link removed from your side.');
+  }
+  async function copyProfileLink(person) {
+    const url = profileUrl(person.handle);
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
+      else {
+        const area = document.createElement('textarea'); area.value = url; area.style.position = 'fixed'; area.style.opacity = '0'; document.body.appendChild(area); area.select();
+        const ok = document.execCommand('copy'); area.remove(); if (!ok) throw new Error('Copy was blocked');
+      }
+      if (typeof toast === 'function') toast('success', 'Profile link copied', 'Share it with someone who has a SAHM account.');
+    } catch (_) { window.prompt('Copy this profile link', url); }
+  }
+  async function loadFriendPeople() {
+    if (!currentId()) return [];
+    const ids = [...new Set(friendshipRows.map(row => row.user_id === currentId() ? row.friend_id : row.user_id))];
+    if (!ids.length) return [];
+    const missing = ids.filter(id => !profileCache.has(id));
+    if (missing.length) {
+      const { data, error } = await db.from('profiles').select('id,username,display_name,bio,avatar_url,created_at').in('id', missing);
+      if (error) throw error;
+      (data || []).forEach(row => {
+        const person = profileRowToPerson(Object.assign({}, row, {followers_count:0,following_count:0}));
+        profileCache.set(person.id, person);
+      });
+    }
+    return ids.map(id => profileCache.get(id)).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name));
+  }
+  async function renderRemoteFriendList() {
+    if (!currentId()) return;
+    try {
+      const q = String(byId('chatFriendSearch').value || '').trim().toLowerCase();
+      const people = (await loadFriendPeople()).filter(person => !q || person.name.toLowerCase().includes(q) || person.handle.toLowerCase().includes(q));
+      byId('chatFriendList').innerHTML = people.length ? people.map(person => {
+        const active = activeChatId === person.id;
+        const avatar = person.img ? '<img src="' + safe(person.img) + '" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">' : '';
+        return '<button type="button" class="w-full text-start flex items-center gap-3 p-3 rounded-xl border border-transparent hover:bg-white/[.03] transition-colors ' + (active ? 'chat-friend-active' : '') + '" data-chat-friend="' + safe(person.id) + '"><span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden text-xs font-extrabold text-emerald-950 relative" style="background:linear-gradient(135deg,#34d399,#10b981)"><span>' + safe(typeof initials === 'function' ? initials(person.name) : person.name.slice(0,2)) + '</span>' + avatar + '</span><span class="min-w-0 flex-1"><span class="block text-xs font-bold text-slate-100 truncate">' + safe(person.name) + '</span><span class="block mono text-[10px] text-slate-500 truncate">@' + safe(person.handle) + '</span></span><span class="text-[10px] text-emerald-300">Friend</span></button>';
+      }).join('') : '<p class="text-xs text-slate-500 p-4">' + (q ? 'No matching friends.' : 'No friends yet. Find a registered user in People and add them.') + '</p>';
+    } catch (error) { console.error(error); }
+  }
+  window.renderFriendList = renderRemoteFriendList;
+  async function loadRemoteMessages(targetId) {
+    if (!currentId() || !targetId || !isFriendRemote(targetId)) return;
+    const request = ++lastMessageRequest;
+    const uid = currentId();
+    const { data, error } = await db.from('messages').select('id,sender_id,receiver_id,body,created_at').or('sender_id.eq.' + uid + ',receiver_id.eq.' + uid).order('created_at', { ascending: true }).limit(500);
+    if (error) throw error;
+    if (request !== lastMessageRequest || activeChatId !== targetId) return;
+    const messages = (data || []).filter(message =>
+      (message.sender_id === uid && message.receiver_id === targetId) ||
+      (message.sender_id === targetId && message.receiver_id === uid)
+    );
+    byId('chatMessages').innerHTML = messages.length ? messages.map(message => {
+      const mine = message.sender_id === uid;
+      const date = new Date(message.created_at);
+      return '<div class="flex flex-col ' + (mine ? 'items-end' : 'items-start') + '"><div class="chat-bubble ' + (mine ? 'mine' : 'theirs') + '">' + safe(message.body) + '</div><div class="text-[9px] text-slate-600 mt-1 px-1">' + safe(date.toLocaleString(state.lang === 'ar' ? 'ar' : 'en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})) + '</div></div>';
+    }).join('') : '<p class="text-xs text-slate-600 text-center py-8">No messages yet. Start the conversation.</p>';
+    byId('chatMessages').scrollTop = byId('chatMessages').scrollHeight;
+  }
+  async function openRemoteChat(id) {
+    if (!isFriendRemote(id)) {
+      if (typeof toast === 'function') toast('error', 'Friend chat unavailable', 'Add this registered user as a friend first.');
+      return;
+    }
+    const person = await fetchPersonById(id);
+    if (!person) return;
+    activeChatId = id;
+    if (typeof switchView === 'function') switchView('chat');
+    byId('chatEmpty').classList.add('hidden');
+    byId('chatThread').classList.remove('hidden');
+    byId('chatTargetName').textContent = person.name;
+    byId('chatTargetHandle').textContent = '@' + person.handle;
+    if (person.img) byId('chatTargetAvatar').innerHTML = '<img src="' + safe(person.img) + '" class="w-full h-full object-cover" alt="" onerror="this.remove()">';
+    else byId('chatTargetAvatar').textContent = typeof initials === 'function' ? initials(person.name) : person.name.slice(0,2);
+    await renderRemoteFriendList();
+    await loadRemoteMessages(id);
+    if (realtimeChannel) {
+      db.removeChannel(realtimeChannel).catch(() => {});
+      realtimeChannel = null;
+    }
+    realtimeChannel = db.channel('sahm-chat-' + currentId() + '-' + id)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'receiver_id=eq.' + currentId() }, payload => {
+        const row = payload.new || {};
+        if (activeChatId === id && (row.sender_id === id || row.receiver_id === id)) loadRemoteMessages(id).catch(console.error);
+      })
+      .subscribe();
+  }
+  window.openChatWith = function (id) { openRemoteChat(id).catch(error => { console.error(error); if (typeof toast === 'function') toast('error', 'Chat error', error.message || 'Could not open chat.'); }); };
+
+  async function sendRemoteMessage(event) {
+    event.preventDefault(); event.stopImmediatePropagation();
+    const body = String(byId('chatMessageInput').value || '').trim();
+    if (!body || !activeChatId || !isFriendRemote(activeChatId)) return;
+    if (body.length > 2000) { if (typeof toast === 'function') toast('error','Message too long','Messages are limited to 2,000 characters.'); return; }
+    const button = byId('chatForm').querySelector('button[type="submit"]');
+    setBusy(button, true);
+    try {
+      const { error } = await db.from('messages').insert({ sender_id: currentId(), receiver_id: activeChatId, body });
+      if (error) throw error;
+      byId('chatMessageInput').value = '';
+      await loadRemoteMessages(activeChatId);
+    } catch (error) {
+      if (typeof toast === 'function') toast('error', 'Message not sent', error.message || 'You can message registered friends only.');
+    } finally { setBusy(button, false); }
+  }
+  const chatForm = byId('chatForm');
+  if (chatForm) chatForm.addEventListener('submit', sendRemoteMessage, true);
+
+  async function onOnlineSignIn() {
+    if (authBusy) return;
+    authBusy = true;
+    const button = byId('formSignIn').querySelector('button[type="submit"]');
+    setBusy(button, true);
+    try {
+      const email = byId('siEmail').value.trim().toLowerCase();
+      const password = byId('siPassword').value;
+      if (!email || !password) throw new Error('Enter your email and password.');
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await startOnlineSession(data.user || data.session.user, true);
+    } finally { setBusy(button, false); authBusy = false; }
+  }
+  async function onOnlineSignUp() {
+    if (authBusy) return;
+    authBusy = true;
+    const button = byId('formSignUp').querySelector('button[type="submit"]');
+    setBusy(button, true);
+    try {
+      const name = byId('suName').value.trim();
+      const username = byId('suUsername').value.trim().toLowerCase();
+      const email = byId('suEmail').value.trim().toLowerCase();
+      const password = byId('suPassword').value;
+      const confirm = byId('suConfirm').value;
+      if (name.length < 3) throw new Error('Please enter your name (at least 3 characters).');
+      if (!/^[a-z0-9_.]{3,20}$/.test(username)) throw new Error('Choose a username with 3–20 lowercase letters, numbers, underscores or dots.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new Error('Enter a valid email address.');
+      if (password.length < 8) throw new Error('Password must contain at least 8 characters.');
+      if (password !== confirm) throw new Error('The passwords do not match.');
+      if (!byId('suTerms').checked) throw new Error('Please accept the Terms of Service.');
+      const availability = await db.rpc('is_username_available', { requested_username: username });
+      if (availability.error) throw new Error('Username lookup failed. Run the setup SQL first. (' + availability.error.message + ')');
+      if (!availability.data) throw new Error('That username is unavailable. Choose another one.');
+      const redirect = window.location.origin !== 'null' ? window.location.origin + window.location.pathname : undefined;
+      const options = { data: { username, display_name: name } };
+      if (redirect) options.emailRedirectTo = redirect;
+      const { data, error } = await db.auth.signUp({ email, password, options });
+      if (error) throw error;
+      if (data.session && data.user) {
+        await startOnlineSession(data.user, false);
+        setAuthMessage('Your account is created. Your email provider may ask you to verify your address.', 'success');
+      } else {
+        setAuthMessage('Account request created. Check your email and confirm the address before signing in.', 'success');
+      }
+    } finally { setBusy(button, false); authBusy = false; }
+  }
+  blockLocalAuth(byId('formSignIn'), onOnlineSignIn);
+  blockLocalAuth(byId('formSignUp'), onOnlineSignUp);
+
+  async function startOnlineSession(auth, returning) {
+    if (!auth || !auth.id) throw new Error('Supabase did not return a valid account.');
+    if (state.user && state.user.id === auth.id && !byId('appScreen').classList.contains('hidden')) return;
+    authUser = auth;
+    const row = await loadOwnProfile(auth);
+    state.user = makeCurrentAccount(auth, row);
+    profileCache.set(row.id, profileRowToPerson(Object.assign({}, row, {followers_count:0,following_count:0})));
+    state.users = [state.user];
+    // Remove legacy browser-only account credentials after switching this browser to real email authentication.
+    localStorage.removeItem('sahm_session');
+    localStorage.removeItem('sahm_users');
+    window.saveUsers();
+    showAppOnly();
+    if (typeof buildApp === 'function') buildApp();
+    setSetupBanner(true);
+    await refreshSocial();
+    await reloadDirectory('');
+    renderRemotePeople();
+    await renderRemoteFriendList();
+    if (socialChannel) { try { await db.removeChannel(socialChannel); } catch (_) {} }
+    socialChannel = db.channel('sahm-social-' + currentId())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'follows' }, async () => {
+        try { await refreshSocial(); await reloadDirectory(state.peopleQuery || ''); await renderRemoteFriendList(); }
+        catch (error) { console.error(error); }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, async () => {
+        try { await refreshSocial(); await reloadDirectory(state.peopleQuery || ''); await renderRemoteFriendList(); }
+        catch (error) { console.error(error); }
+      })
+      .subscribe();
+    const chatNote = document.querySelector('[data-i18n="demoChatNote"]');
+    if (chatNote) chatNote.textContent = 'Messages sync across signed-in devices in realtime. You can message only registered users linked as friends.';
+    if (typeof updateStatCards === 'function') updateStatCards();
+    if (typeof updatePositionCard === 'function') updatePositionCard();
+    if (typeof renderRewards === 'function') renderRewards();
+    if (typeof toast === 'function') toast('success', returning ? 'Welcome back' : 'Welcome to SAHM', state.user.name);
+    openProfileFromUrl();
+  }
+  async function openProfileFromUrl() {
+    const handle = new URLSearchParams(window.location.search).get('profile');
+    if (!handle || !currentId()) return;
+    try {
+      const person = await fetchPersonByHandle(handle);
+      if (person) setTimeout(() => window.openUserModal(person.id), 180);
+      else if (typeof toast === 'function') toast('info', 'Profile not found', 'That profile is not available or the username has changed.');
+    } catch (error) { console.error(error); }
+  }
+
+  // Capture handlers before the old localStorage-only social listeners receive the event.
+  byId('peopleSearch').addEventListener('input', event => {
+    event.stopImmediatePropagation();
+    state.peopleQuery = event.target.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => reloadDirectory(state.peopleQuery), 220);
+  }, true);
+  byId('peopleGrid').addEventListener('click', event => {
+    const followButton = event.target.closest('[data-follow]');
+    const personCard = event.target.closest('[data-person]');
+    if (!followButton && !personCard) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (followButton) toggleRemoteFollow(followButton.dataset.follow).catch(error => { console.error(error); if (typeof toast === 'function') toast('error','Follow failed',error.message || 'Could not follow this profile.'); });
+    else window.openUserModal(personCard.dataset.person);
+  }, true);
+  byId('umFollowBtn').addEventListener('click', event => {
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (activeProfile) toggleRemoteFollow(activeProfile.id).catch(error => { console.error(error); if (typeof toast === 'function') toast('error','Follow failed',error.message || 'Could not update follow.'); });
+  }, true);
+  byId('umFriendBtn').addEventListener('click', event => {
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (activeProfile) toggleRemoteFriend(activeProfile.id).catch(error => { console.error(error); if (typeof toast === 'function') toast('error','Friend update failed',error.message || 'Could not update this friend.'); });
+  }, true);
+  byId('umMessageBtn').addEventListener('click', event => {
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (activeProfile) { if (typeof closeModal === 'function') closeModal('userModal'); window.openChatWith(activeProfile.id); }
+  }, true);
+  byId('umShareBtn').addEventListener('click', event => {
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (activeProfile) copyProfileLink(activeProfile);
+  }, true);
+  byId('chatFriendList').addEventListener('click', event => {
+    const button = event.target.closest('[data-chat-friend]');
+    if (!button) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    window.openChatWith(button.dataset.chatFriend);
+  }, true);
+  byId('chatFriendSearch').addEventListener('input', event => {
+    event.stopImmediatePropagation(); renderRemoteFriendList();
+  }, true);
+  byId('chatViewProfileBtn').addEventListener('click', event => {
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (activeChatId) { if (typeof closeModal === 'function') closeModal('userModal'); window.openUserModal(activeChatId); }
+  }, true);
+
+  // Sync the editable public profile to the shared profile table.
+  byId('saveProfileBtn').addEventListener('click', async event => {
+    if (!configured || !currentId()) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    const name = byId('setName').value.trim();
+    const username = byId('setUsername').value.trim().toLowerCase();
+    const bio = byId('setBio').value.trim().slice(0,160);
+    if (name.length < 3) { setAuthMessage('Name must be at least 3 characters.', 'error'); return; }
+    if (!/^[a-z0-9_.]{3,20}$/.test(username)) { byId('setUsernameHint').textContent = 'Invalid username format.'; return; }
+    const available = await db.rpc('is_username_available', { requested_username: username });
+    if (available.error) { if (typeof toast === 'function') toast('error','Profile not saved',available.error.message); return; }
+    if (username !== state.user.username && !available.data) { byId('setUsernameHint').textContent = 'Username is already in use.'; byId('setUsernameHint').className='text-[10px] mt-1 min-h-[1rem] text-rose-400'; return; }
+    const btn = byId('saveProfileBtn'); setBusy(btn, true);
+    try {
+      const { data, error } = await db.from('profiles').update({ display_name:name, username, bio }).eq('id',currentId()).select('id,username,display_name,bio,avatar_url,created_at').single();
+      if (error) throw error;
+      state.user.name = data.display_name; state.user.username = data.username; state.user.bio = data.bio;
+      profileCache.set(data.id, profileRowToPerson(Object.assign({},data,{followers_count:state.user.followers||0,following_count:state.user.following.length})));
+      await reloadDirectory(state.peopleQuery || '');
+      if (typeof renderAvatars === 'function') renderAvatars();
+      if (typeof fillSettingsForm === 'function') fillSettingsForm();
+      if (typeof toast === 'function') toast('success','Profile saved','Your public profile is now shared with SAHM users.');
+    } catch (error) { console.error(error); if (typeof toast === 'function') toast('error','Profile not saved',error.message || 'Could not save changes.'); }
+    finally { setBusy(btn, false); }
+  }, true);
+
+  // Change the password through Supabase Auth, never through a localStorage password field.
+  byId('updatePwBtn').addEventListener('click', async event => {
+    if (!configured || !currentId()) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    const currentPassword = byId('curPw').value;
+    const newPassword = byId('newPw').value;
+    const confirmPassword = byId('confirmNewPw').value;
+    if (!currentPassword || newPassword.length < 8 || newPassword !== confirmPassword) {
+      if (typeof toast === 'function') toast('error','Password not changed','Enter the current password, a new password of at least 8 characters, and matching confirmation.');
+      return;
+    }
+    const button = byId('updatePwBtn'); setBusy(button, true);
+    try {
+      const verification = await db.auth.signInWithPassword({ email:authUser.email, password:currentPassword });
+      if (verification.error) throw new Error('The current password is incorrect.');
+      const result = await db.auth.updateUser({ password:newPassword });
+      if (result.error) throw result.error;
+      byId('curPw').value = ''; byId('newPw').value = ''; byId('confirmNewPw').value = '';
+      if (typeof toast === 'function') toast('success','Password changed','Supabase updated your account password.');
+    } catch (error) { if (typeof toast === 'function') toast('error','Password not changed',error.message || 'Could not update password.'); }
+    finally { setBusy(button, false); }
+  }, true);
+
+  async function signOutOnline() {
+    try { if (db) await db.auth.signOut(); }
+    catch (error) { console.error(error); }
+    if (realtimeChannel && db) { try { await db.removeChannel(realtimeChannel); } catch (_) {} }
+    if (socialChannel && db) { try { await db.removeChannel(socialChannel); } catch (_) {} }
+    realtimeChannel = null; socialChannel = null; activeChatId = null; authUser = null; state.user = null; state.users = [];
+    localStorage.removeItem('sahm_session');
+    if (byId('appScreen')) { byId('appScreen').classList.add('hidden'); byId('appScreen').classList.remove('flex'); }
+    if (byId('authScreen')) byId('authScreen').classList.remove('hidden');
+    setAuthMessage(null);
+    setSetupBanner(!!configured);
+    if (typeof toast === 'function') toast('info','Signed out','Your SAHM online session has ended.');
+  }
+  ['logoutBtn','signOutAllBtn'].forEach(id => {
+    const button = byId(id);
+    if (!button) return;
+    button.addEventListener('click', event => {
+      event.preventDefault(); event.stopImmediatePropagation();
+      if (byId('avatarDropdown')) byId('avatarDropdown').classList.add('hidden');
+      signOutOnline();
+    }, true);
+  });
+
+  // Prevent old local profile/session auto-login from posing as an online account.
+  // Hide the sample demo-login shortcut so users do not mistake a sample account for a real email account.
+  if (byId('demoFillBtn')) byId('demoFillBtn').classList.add('hidden');
+  const demoDivider = byId('demoFillBtn') && byId('demoFillBtn').previousElementSibling;
+  if (demoDivider && demoDivider.classList.contains('flex')) demoDivider.classList.add('hidden');
+  showAuthOnly();
+  if (!configured) {
+    const reason = !hasLibrary
+      ? 'The Supabase client library did not load. Check your connection, then reload. If it persists, inspect the CDN script.'
+      : 'Online mode is not connected yet. Edit window.SAHM_SUPABASE_CONFIG with your Supabase Project URL and publishable/anon key, then run sahm_supabase_setup.sql. See SUPABASE_SETUP.md. Local demo sign-in is disabled.';
+    setSetupBanner(false, reason);
+  } else {
+    db = window.supabase.createClient(projectUrl, publicKey, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    });
+    setSetupBanner(true);
+    db.auth.getSession().then(async ({ data, error }) => {
+      if (error) throw error;
+      if (data && data.session && data.session.user) await startOnlineSession(data.session.user, true);
+      else showAuthOnly();
+    }).catch(error => {
+      console.error('[SAHM Supabase startup]', error);
+      showAuthOnly();
+      setAuthMessage('Could not initialize the online community. Check the Project URL/key, allowed redirect URLs, and run sahm_supabase_setup.sql. ' + (error.message || ''), 'error');
+    });
+  }
+})();
+
+</script>
 </body>
 </html>
