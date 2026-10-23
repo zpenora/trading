@@ -8,24 +8,6 @@ The platform combines a dark visual design with gold accents, account profiles, 
 
 SAHM Markets aims to bring essential account and portfolio features together in one place. The interface is designed around accessibility, simplicity, and a professional financial-dashboard appearance.
 
-## Key Features
-
-- **User Accounts:** Sign-up and sign-in interfaces for users.
-- **Email OTP Verification:** Email verification using EmailJS and six-digit verification codes.
-- **Personal Profiles:** Display usernames and manage profile information.
-- **Portfolio Management Interface:** A portfolio starting with a $0 cash balance for new accounts.
-- **Currency Preferences:** Select a preferred currency through the settings.
-- **Customizable Settings:** Manage available profile and preference options.
-- **Modern UI:** Dark styling with gold accents and a financial-dashboard layout.
-- **Web-Based Access:** Use the interface in a modern browser.
-
-## Technology
-
-- HTML
-- CSS
-- JavaScript
-- EmailJS for email verification
-- GitHub Pages for static website hosting
 
 ## Project Goals
 
