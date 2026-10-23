@@ -175,22 +175,6 @@ input[type=number]{-moz-appearance:textfield}
 .profile-count-card{min-width:0}
 @media(max-width:640px){.chat-bubble{max-width:90%}}
 
-
-/* ---------- local browser AI chat ---------- */
-.local-ai-message{display:flex;flex-direction:column;gap:.3rem;max-width:min(92%,760px)}
-.local-ai-assistant{align-items:flex-start;margin-right:auto}
-.local-ai-user{align-items:flex-end;margin-left:auto}
-.local-ai-name{font-size:.65rem;font-weight:800;letter-spacing:.04em;color:#8b98ad;padding:0 .25rem}
-.local-ai-bubble{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:.86rem;padding:.75rem .9rem;border-radius:1rem;background:rgba(148,163,184,.09);border:1px solid rgba(148,163,184,.14);color:#e2e8f0}
-.local-ai-user .local-ai-bubble{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.25);color:#eafff6;border-bottom-right-radius:.3rem}
-.ai-suggestion{font-size:.7rem;color:#9fddc2;border:1px solid rgba(52,211,153,.22);background:rgba(52,211,153,.055);padding:.42rem .7rem;border-radius:999px;transition:background .15s,border-color .15s}
-.ai-suggestion:hover{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.4)}
-#aiLoadBtn:disabled,#aiSendBtn:disabled{opacity:.55;cursor:wait}
-.mobile-bottom-nav{overflow-x:auto;scrollbar-width:none}
-.mobile-bottom-nav::-webkit-scrollbar{display:none}
-.mobile-bottom-nav .mnav-item{flex:0 0 12.5%;min-width:48px}
-.mobile-bottom-nav .mnav-item span{white-space:nowrap}
-
 </style>
 </head>
 <body class="bg-ink text-slate-200 overflow-x-hidden">
@@ -418,7 +402,6 @@ input[type=number]{-moz-appearance:textfield}
       <button class="nav-item" data-view="portfolio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg><span data-i18n="navPortfolio">Portfolio</span></button>
       <button class="nav-item" data-view="people"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span data-i18n="navPeople">People</span></button>
       <button class="nav-item" data-view="chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l1.8-5.5A8.5 8.5 0 1 1 21 11.5Z"></path><path d="M8 11h8M8 14h5"></path></svg><span data-i18n="navChat">Chats</span></button>
-      <button class="nav-item" data-view="ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"></rect><path d="M9 7V4m6 3V4M8 12h.01M16 12h.01M9 16h6"></path><path d="M2 11v4m20-4v4"></path></svg><span>AI Chat</span></button>
       <button class="nav-item" data-view="rewards"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"></path><path d="M2 7h20v5H2z"></path><path d="M12 22V7"></path><path d="M12 7H7.5a2.5 2.5 0 1 1 2.5-2.5C10 6 12 7 12 7Z"></path><path d="M12 7h4.5A2.5 2.5 0 1 0 14 4.5C14 6 12 7 12 7Z"></path></svg><span data-i18n="navRewards">Rewards</span></button>
       <button class="nav-item" data-view="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span data-i18n="navSettings">Settings</span></button>
 
@@ -801,40 +784,6 @@ input[type=number]{-moz-appearance:textfield}
           <p class="text-[10px] text-slate-600 mt-4 leading-relaxed" data-i18n="demoChatNote">Messages are saved to this browser. To message friends on other devices or browsers, connect a shared database and authentication service.</p>
         </section>
 
-        <!-- ═════════ VIEW · LOCAL AI ═════════ -->
-        <section id="view-ai" class="view hidden">
-          <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
-            <div>
-              <div class="flex items-center gap-2 mb-1"><span class="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-300" style="background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.2)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"></rect><path d="M9 7V4m6 3V4M8 12h.01M16 12h.01M9 16h6"></path><path d="M2 11v4m20-4v4"></path></svg></span><h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">SAHM AI</h1></div>
-              <p class="text-xs text-slate-500 mt-1">Chat with a small language model running locally in your browser.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="aiLoadBtn" type="button" class="btn btn-primary !py-2.5 !px-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5"></path><path d="M5 17v3h14v-3"></path></svg><span id="aiLoadBtnText">Load AI model</span></button>
-              <button id="aiClearBtn" type="button" class="btn btn-ghost !py-2.5 !px-3">New chat</button>
-            </div>
-          </div>
-          <div class="card overflow-hidden flex flex-col" style="min-height:560px">
-            <div class="px-4 sm:px-5 py-3 border-b border-white/8 flex items-center gap-3">
-              <span class="relative flex h-2.5 w-2.5"><span id="aiStatusDot" class="absolute inline-flex h-full w-full rounded-full opacity-50 bg-amber-400"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span></span>
-              <div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">Browser AI · Qwen 0.5B</div><p id="aiStatus" class="text-[10px] text-slate-500 mt-0.5" role="status" aria-live="polite">Not loaded yet. Load the model to start chatting.</p></div>
-              <span class="chip !text-emerald-200 !border-emerald-400/20">No API key</span>
-            </div>
-            <div id="aiMessages" class="flex-1 p-4 sm:p-5 space-y-4 overflow-y-auto" style="min-height:350px;max-height:calc(100dvh - 330px)" role="log" aria-live="polite">
-              <div class="local-ai-message local-ai-assistant"><div class="local-ai-name">SAHM AI</div><div class="local-ai-bubble">Hi! I run on your device after the model downloads. Ask me about learning, coding, or general questions. I can also explain trading concepts, but my answers can be wrong.</div></div>
-            </div>
-            <div class="px-4 sm:px-5 pb-3 flex flex-wrap gap-2">
-              <button type="button" class="ai-suggestion" data-ai-prompt="Explain stocks and shares in simple terms.">Explain stocks</button>
-              <button type="button" class="ai-suggestion" data-ai-prompt="Help me understand how compound interest works.">Compound interest</button>
-              <button type="button" class="ai-suggestion" data-ai-prompt="Give me a beginner-friendly HTML project idea.">Coding idea</button>
-            </div>
-            <form id="aiChatForm" class="p-3 sm:p-4 border-t border-white/8 flex items-end gap-2">
-              <textarea id="aiPromptInput" rows="1" maxlength="4000" class="field resize-none flex-1" placeholder="Message SAHM AI…" aria-label="Message SAHM AI" required></textarea>
-              <button id="aiSendBtn" type="submit" class="btn btn-primary !px-4 !py-3" aria-label="Send message"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg><span>Send</span></button>
-            </form>
-          </div>
-          <p class="text-[10px] text-slate-600 mt-3 leading-relaxed">No API key or AI server is required. The first use downloads model files from Hugging Face (a few hundred MB); generation then runs on your device. An internet connection is still needed for the first download. Results depend on your browser and hardware, and the model may respond slowly on weaker devices.</p>
-        </section>
-
         <!-- ═════════ VIEW · SETTINGS ═════════ -->
         <section id="view-settings" class="view hidden">
           <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-4" data-i18n="settingsTitle">Account Settings</h1>
@@ -964,13 +913,12 @@ input[type=number]{-moz-appearance:textfield}
   </div>
 
   <!-- Mobile bottom nav -->
-  <nav class="mobile-bottom-nav lg:hidden fixed bottom-0 inset-x-0 z-40 flex border-t border-white/8 bg-[#070a12]/95 backdrop-blur-xl px-1" style="padding-bottom:env(safe-area-inset-bottom)">
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 flex border-t border-white/8 bg-[#070a12]/95 backdrop-blur-xl px-1" style="padding-bottom:env(safe-area-inset-bottom)">
     <button class="mnav-item active" data-view="dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span data-i18n="navDashboard">Dashboard</span></button>
     <button class="mnav-item" data-view="markets"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="4" x2="9" y2="7.5"></line><rect x="6.4" y="7.5" width="5.2" height="9" rx="1.1"></rect><line x1="9" y1="16.5" x2="9" y2="20"></line><line x1="16.5" y1="3" x2="16.5" y2="8"></line><rect x="13.9" y="8" width="5.2" height="8" rx="1.1"></rect><line x1="16.5" y1="16" x2="16.5" y2="21"></line></svg><span data-i18n="navMarkets">Markets</span></button>
     <button class="mnav-item" data-view="portfolio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg><span data-i18n="navPortfolio">Portfolio</span></button>
     <button class="mnav-item" data-view="people"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span data-i18n="navPeople">People</span></button>
     <button class="mnav-item" data-view="chat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l1.8-5.5A8.5 8.5 0 1 1 21 11.5Z"></path><path d="M8 11h8M8 14h5"></path></svg><span data-i18n="navChat">Chats</span></button>
-    <button class="mnav-item" data-view="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"></rect><path d="M9 7V4m6 3V4M8 12h.01M16 12h.01M9 16h6"></path><path d="M2 11v4m20-4v4"></path></svg><span>AI</span></button>
     <button class="mnav-item" data-view="rewards"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"></path><path d="M2 7h20v5H2z"></path><path d="M12 22V7"></path><path d="M12 7H7.5a2.5 2.5 0 1 1 2.5-2.5C10 6 12 7 12 7Z"></path><path d="M12 7h4.5A2.5 2.5 0 1 0 14 4.5C14 6 12 7 12 7Z"></path></svg><span data-i18n="navRewards">Rewards</span></button>
     <button class="mnav-item" data-view="settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span data-i18n="navSettings">Settings</span></button>
   </nav>
@@ -4186,215 +4134,5 @@ TLD-VU2WR9
   openProfileFromQuery();
 })();
 </script>
-<script type="module">
-(() => {
-  const $ = (selector) => document.querySelector(selector);
-  const MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
-  const LIBRARY_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4';
-  const systemPrompt = 'You are SAHM AI, a helpful and careful assistant inside a paper-trading website. Answer clearly and concisely. You can explain general concepts and coding. For finance topics, provide educational explanations, not personalized investment instructions. Be honest about uncertainty. Reply in the language used by the user when practical.';
-  let generator = null;
-  let loadingPromise = null;
-  let busy = false;
-  let history = [];
-  let currentDevice = 'not loaded';
-
-  const status = (text, kind = 'idle') => {
-    const label = $('#aiStatus');
-    const dot = $('#aiStatusDot');
-    if (label) label.textContent = text;
-    if (dot) {
-      dot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 ' +
-        (kind === 'ready' ? 'bg-emerald-400' : kind === 'error' ? 'bg-rose-400' : kind === 'loading' ? 'bg-sky-400' : 'bg-amber-400');
-      const halo = dot.previousElementSibling;
-      if (halo) halo.className = 'absolute inline-flex h-full w-full rounded-full opacity-50 ' +
-        (kind === 'ready' ? 'bg-emerald-400' : kind === 'error' ? 'bg-rose-400' : kind === 'loading' ? 'bg-sky-400' : 'bg-amber-400');
-    }
-  };
-
-  function appendMessage(role, text, pending = false) {
-    const list = $('#aiMessages');
-    if (!list) return null;
-    const wrap = document.createElement('div');
-    wrap.className = 'local-ai-message ' + (role === 'user' ? 'local-ai-user' : 'local-ai-assistant');
-    const who = document.createElement('div');
-    who.className = 'local-ai-name';
-    who.textContent = role === 'user' ? 'You' : 'SAHM AI';
-    const bubble = document.createElement('div');
-    bubble.className = 'local-ai-bubble';
-    bubble.textContent = text;
-    if (pending) bubble.textContent = text || 'Thinking…';
-    wrap.append(who, bubble);
-    list.appendChild(wrap);
-    list.scrollTop = list.scrollHeight;
-    return {wrap, bubble};
-  }
-
-  function trimHistory() {
-    history = history.slice(-12);
-    if (history.length && history[0].role === 'assistant') history.shift();
-  }
-
-  function setBusy(value) {
-    busy = value;
-    const send = $('#aiSendBtn');
-    const input = $('#aiPromptInput');
-    const load = $('#aiLoadBtn');
-    if (send) send.disabled = value;
-    if (input) input.disabled = value;
-    if (load) load.disabled = value || !!generator;
-  }
-
-  function progressHandler(info) {
-    if (!info || typeof info !== 'object') return;
-    const file = info.file ? String(info.file).split('/').pop() : 'model files';
-    if (typeof info.progress === 'number' && Number.isFinite(info.progress)) {
-      status('Downloading ' + file + ' · ' + Math.round(info.progress) + '%', 'loading');
-    } else if (info.status) {
-      const pretty = String(info.status).replaceAll('_', ' ');
-      status(pretty + (info.file ? ' · ' + file : '') + '…', 'loading');
-    }
-  }
-
-  async function ensureModel() {
-    if (generator) return generator;
-    if (loadingPromise) return loadingPromise;
-    const loadBtnText = $('#aiLoadBtnText');
-    if (loadBtnText) loadBtnText.textContent = 'Loading…';
-    if ($('#aiLoadBtn')) $('#aiLoadBtn').disabled = true;
-    status('Preparing browser AI. The first download may take several minutes…', 'loading');
-    loadingPromise = (async () => {
-      try {
-        const { pipeline, env } = await import(LIBRARY_URL);
-        env.useBrowserCache = true;
-        env.allowRemoteModels = true;
-        let loaded = false;
-        if ('gpu' in navigator) {
-          try {
-            status('Loading model with WebGPU acceleration…', 'loading');
-            generator = await pipeline('text-generation', MODEL_ID, {
-              dtype: 'q4', device: 'webgpu', progress_callback: progressHandler,
-            });
-            currentDevice = 'WebGPU';
-            loaded = true;
-          } catch (gpuError) {
-            console.warn('WebGPU model load failed; trying browser CPU/WASM.', gpuError);
-            generator = null;
-            status('GPU acceleration unavailable. Trying CPU mode…', 'loading');
-          }
-        }
-        if (!loaded) {
-          generator = await pipeline('text-generation', MODEL_ID, {
-            dtype: 'q4', device: 'wasm', progress_callback: progressHandler,
-          });
-          currentDevice = 'CPU/WASM';
-        }
-        if (loadBtnText) loadBtnText.textContent = 'AI ready';
-        if ($('#aiLoadBtn')) $('#aiLoadBtn').disabled = true;
-        status('Ready · running locally with ' + currentDevice + ' · no API key', 'ready');
-        return generator;
-      } catch (error) {
-        console.error('SAHM local AI failed to load:', error);
-        generator = null;
-        loadingPromise = null;
-        if (loadBtnText) loadBtnText.textContent = 'Retry loading';
-        if ($('#aiLoadBtn')) $('#aiLoadBtn').disabled = false;
-        status('Could not load the model. Check your connection and try again. ' + (error?.message || ''), 'error');
-        throw error;
-      }
-    })();
-    try { return await loadingPromise; }
-    finally { if (!generator) loadingPromise = null; }
-  }
-
-  function extractAnswer(result) {
-    let generated = result && result[0] ? result[0].generated_text : null;
-    if (Array.isArray(generated)) {
-      for (let i = generated.length - 1; i >= 0; i--) {
-        if (generated[i] && generated[i].role === 'assistant' && typeof generated[i].content === 'string') {
-          return generated[i].content.trim();
-        }
-      }
-      const last = generated[generated.length - 1];
-      if (last && typeof last.content === 'string') return last.content.trim();
-    }
-    if (typeof generated === 'string') {
-      const marker = generated.lastIndexOf('assistant');
-      return (marker >= 0 ? generated.slice(marker + 'assistant'.length) : generated).replace(/^\s*[:\n]*/, '').trim();
-    }
-    return '';
-  }
-
-  async function sendPrompt(raw) {
-    const prompt = String(raw || '').trim();
-    if (!prompt || busy) return;
-    const input = $('#aiPromptInput');
-    if (input) input.value = '';
-    appendMessage('user', prompt);
-    history.push({role: 'user', content: prompt});
-    // Keep compact context with a user message at the beginning.
-    trimHistory();
-    setBusy(true);
-    let pending = appendMessage('assistant', 'Thinking…', true);
-    try {
-      const model = await ensureModel();
-      status('Generating an answer on your device…', 'loading');
-      const messages = [{role: 'system', content: systemPrompt}, ...history];
-      const result = await model(messages, {
-        max_new_tokens: 180,
-        do_sample: true,
-        temperature: 0.7,
-        top_p: 0.85,
-        repetition_penalty: 1.08,
-      });
-      const answer = extractAnswer(result);
-      const safeAnswer = answer || 'I could not produce a response for that message. Try rephrasing it.';
-      if (pending) pending.bubble.textContent = safeAnswer;
-      history.push({role: 'assistant', content: safeAnswer});
-      trimHistory();
-      status('Ready · running locally with ' + currentDevice + ' · no API key', 'ready');
-    } catch (error) {
-      if (pending) pending.bubble.textContent = 'I could not answer because the local AI model did not load or run. Check the internet connection for the first model download, then press “Load AI model” to retry.';
-      status('AI unavailable. Check your connection, reload if needed, and retry.', 'error');
-    } finally {
-      setBusy(false);
-      if (generator && $('#aiLoadBtn')) $('#aiLoadBtn').disabled = true;
-      if ($('#aiMessages')) $('#aiMessages').scrollTop = $('#aiMessages').scrollHeight;
-      if (input) input.focus();
-    }
-  }
-
-  function resetChat() {
-    history = [];
-    const list = $('#aiMessages');
-    if (!list) return;
-    list.replaceChildren();
-    appendMessage('assistant', 'New chat started. I run locally on your device after the model downloads. What would you like to talk about?');
-  }
-
-  const form = $('#aiChatForm');
-  if (form) form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    sendPrompt($('#aiPromptInput')?.value || '');
-  });
-  $('#aiLoadBtn')?.addEventListener('click', async () => {
-    try { await ensureModel(); }
-    catch (_) { /* User-visible error is already shown in the AI status line. */ }
-  });
-  $('#aiClearBtn')?.addEventListener('click', resetChat);
-  document.querySelectorAll('[data-ai-prompt]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const input = $('#aiPromptInput');
-      if (input) { input.value = button.getAttribute('data-ai-prompt') || ''; input.focus(); }
-    });
-  });
-  $('#aiPromptInput')?.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      form?.requestSubmit();
-    }
-  });
-})();
-</script>
-
 </body>
 </html>
